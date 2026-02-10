@@ -1,0 +1,23 @@
+Macro Matrix — Commercial License
+
+Copyright © 2026 Shaanbir1998
+
+All rights reserved.
+
+This software and its code are the property of the author (Shaanbir1998).
+The source code is made publicly viewable as a demonstration, but may not
+be redistributed, resold, or repackaged without permission.
+
+License Grant:
+The purchaser of Macro Matrix Pro is granted a non-exclusive, non-transferable,
+revocable license to use this software for personal or internal business use.
+
+The purchaser MAY:
+• Use and modify this software for personal use.
+
+The purchaser MAY NOT:
+• Redistribute, republish, or resell the software or any derivative;
+• Include the software in products for sale;
+• Claim the software as their original work.
+
+This software is provided “as is”, without warranty of any kind.
