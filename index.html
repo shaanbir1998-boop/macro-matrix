@@ -62,6 +62,7 @@
       </div>
     </div>
   </div>
+
 <script>
   let ingredients = JSON.parse(localStorage.getItem('ingredients')) || [];
   let targets = JSON.parse(localStorage.getItem('targets')) || { protein: 0, carbs: 0, fat: 0 };
@@ -70,7 +71,6 @@
   const proteinInput = document.getElementById('protein');
   const carbsInput = document.getElementById('carbs');
   const fatInput = document.getElementById('fat');
-  const quantityInput = document.getElementById('quantity');
 
   const targetProteinInput = document.getElementById('targetProtein');
   const targetCarbsInput = document.getElementById('targetCarbs');
@@ -92,7 +92,6 @@
 
     ingredients.push({
       name: nameInput.value.toUpperCase(),
-      quantity: Number(quantityInput.value) || 1,
       protein: Number(proteinInput.value) || 0,
       carbs: Number(carbsInput.value) || 0,
       fat: Number(fatInput.value) || 0
@@ -102,7 +101,6 @@
     proteinInput.value = '';
     carbsInput.value = '';
     fatInput.value = '';
-    quantityInput.value = 1;
 
     update();
   }
@@ -118,7 +116,6 @@
     proteinInput.value = i.protein;
     carbsInput.value = i.carbs;
     fatInput.value = i.fat;
-    quantityInput.value = i.quantity;
     ingredients.splice(index, 1);
     update();
   }
@@ -126,17 +123,12 @@
   function renderTable() {
     tableBody.innerHTML = '';
     ingredients.forEach((i, idx) => {
-      const totalP = i.protein * i.quantity;
-      const totalC = i.carbs * i.quantity;
-      const totalF = i.fat * i.quantity;
-
       const row = document.createElement('tr');
       row.innerHTML = `
         <td class="border border-white p-2">${i.name}</td>
-        <td class="border border-white p-2 text-center">${i.quantity}</td>
-        <td class="border border-white p-2 text-center">${totalP}</td>
-        <td class="border border-white p-2 text-center">${totalC}</td>
-        <td class="border border-white p-2 text-center">${totalF}</td>
+        <td class="border border-white p-2 text-center">${i.protein}</td>
+        <td class="border border-white p-2 text-center">${i.carbs}</td>
+        <td class="border border-white p-2 text-center">${i.fat}</td>
         <td class="border border-white p-2 text-center">
           <button onclick="editIngredient(${idx})">E</button> |
           <button onclick="removeIngredient(${idx})">X</button>
@@ -148,9 +140,9 @@
 
   function calculateTotals() {
     const totals = ingredients.reduce((a, i) => {
-      a.protein += i.protein * i.quantity;
-      a.carbs += i.carbs * i.quantity;
-      a.fat += i.fat * i.quantity;
+      a.protein += i.protein;
+      a.carbs += i.carbs;
+      a.fat += i.fat;
       return a;
     }, { protein: 0, carbs: 0, fat: 0 });
 
@@ -162,14 +154,9 @@
     document.getElementById('totalCarbs').textContent = totals.carbs;
     document.getElementById('totalFat').textContent = totals.fat;
 
-    document.getElementById('proteinBar').style.width =
-      targets.protein ? Math.min(100, totals.protein / targets.protein * 100) + '%' : '0%';
-
-    document.getElementById('carbsBar').style.width =
-      targets.carbs ? Math.min(100, totals.carbs / targets.carbs * 100) + '%' : '0%';
-
-    document.getElementById('fatBar').style.width =
-      targets.fat ? Math.min(100, totals.fat / targets.fat * 100) + '%' : '0%';
+    document.getElementById('proteinBar').style.width = targets.protein ? Math.min(100, totals.protein / targets.protein * 100) + '%' : '0%';
+    document.getElementById('carbsBar').style.width = targets.carbs ? Math.min(100, totals.carbs / targets.carbs * 100) + '%' : '0%';
+    document.getElementById('fatBar').style.width = targets.fat ? Math.min(100, totals.fat / targets.fat * 100) + '%' : '0%';
   }
 
   function update() {
@@ -180,3 +167,5 @@
 
   update();
 </script>
+</body>
+</html>
