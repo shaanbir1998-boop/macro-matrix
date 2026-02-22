@@ -1,36 +1,27 @@
 <script>
-/*
-  Macro Matrix
-  Quantity-enabled version
-*/
-
 let ingredients = [];
-let macroTargets = {
-  protein: 0,
-  carbs: 0,
-  fat: 0
-};
-
-/* =========================
-   LOAD ON START
-========================= */
+let macroTargets = { protein: 0, carbs: 0, fat: 0 };
 
 document.addEventListener("DOMContentLoaded", () => {
   loadFromLocalStorage();
-  renderIngredients();
-  updateTotals();
+  if (document.getElementById("ingredientList")) renderIngredients();
+  if (document.getElementById("totalProtein")) updateTotals();
 });
 
-/* =========================
-   ADD INGREDIENT
-========================= */
-
 function addIngredient() {
-  const name = document.getElementById("name").value.trim();
-  const quantity = parseFloat(document.getElementById("quantity").value) || 1;
-  const proteinPerUnit = parseFloat(document.getElementById("protein").value) || 0;
-  const carbsPerUnit = parseFloat(document.getElementById("carbs").value) || 0;
-  const fatPerUnit = parseFloat(document.getElementById("fat").value) || 0;
+  const nameEl = document.getElementById("name");
+  const quantityEl = document.getElementById("quantity");
+  const proteinEl = document.getElementById("protein");
+  const carbsEl = document.getElementById("carbs");
+  const fatEl = document.getElementById("fat");
+
+  if (!nameEl) return;
+
+  const name = nameEl.value.trim();
+  const quantity = quantityEl ? parseFloat(quantityEl.value) || 1 : 1;
+  const proteinPerUnit = proteinEl ? parseFloat(proteinEl.value) || 0 : 0;
+  const carbsPerUnit = carbsEl ? parseFloat(carbsEl.value) || 0 : 0;
+  const fatPerUnit = fatEl ? parseFloat(fatEl.value) || 0 : 0;
 
   if (!name) return;
 
@@ -49,20 +40,12 @@ function addIngredient() {
   clearInputs();
 }
 
-/* =========================
-   DELETE INGREDIENT
-========================= */
-
 function deleteIngredient(id) {
   ingredients = ingredients.filter(item => item.id !== id);
   saveToLocalStorage();
   renderIngredients();
   updateTotals();
 }
-
-/* =========================
-   UPDATE TOTALS
-========================= */
 
 function updateTotals() {
   let totalProtein = 0;
@@ -75,64 +58,50 @@ function updateTotals() {
     totalFat += item.fatPerUnit * item.quantity;
   });
 
-  document.getElementById("totalProtein").textContent = totalProtein.toFixed(1);
-  document.getElementById("totalCarbs").textContent = totalCarbs.toFixed(1);
-  document.getElementById("totalFat").textContent = totalFat.toFixed(1);
+  const proteinEl = document.getElementById("totalProtein");
+  const carbsEl = document.getElementById("totalCarbs");
+  const fatEl = document.getElementById("totalFat");
+
+  if (proteinEl) proteinEl.textContent = totalProtein.toFixed(1);
+  if (carbsEl) carbsEl.textContent = totalCarbs.toFixed(1);
+  if (fatEl) fatEl.textContent = totalFat.toFixed(1);
 
   updateProgressBars(totalProtein, totalCarbs, totalFat);
 }
 
-/* =========================
-   PROGRESS BARS
-========================= */
-
 function updateProgressBars(p, c, f) {
-  const proteinPercent = macroTargets.protein
-    ? (p / macroTargets.protein) * 100
-    : 0;
+  const proteinBar = document.getElementById("proteinBar");
+  const carbsBar = document.getElementById("carbsBar");
+  const fatBar = document.getElementById("fatBar");
 
-  const carbsPercent = macroTargets.carbs
-    ? (c / macroTargets.carbs) * 100
-    : 0;
+  if (!proteinBar || !carbsBar || !fatBar) return;
 
-  const fatPercent = macroTargets.fat
-    ? (f / macroTargets.fat) * 100
-    : 0;
+  const proteinPercent = macroTargets.protein ? (p / macroTargets.protein) * 100 : 0;
+  const carbsPercent = macroTargets.carbs ? (c / macroTargets.carbs) * 100 : 0;
+  const fatPercent = macroTargets.fat ? (f / macroTargets.fat) * 100 : 0;
 
-  document.getElementById("proteinBar").style.width =
-    Math.min(proteinPercent, 100) + "%";
-
-  document.getElementById("carbsBar").style.width =
-    Math.min(carbsPercent, 100) + "%";
-
-  document.getElementById("fatBar").style.width =
-    Math.min(fatPercent, 100) + "%";
+  proteinBar.style.width = Math.min(proteinPercent, 100) + "%";
+  carbsBar.style.width = Math.min(carbsPercent, 100) + "%";
+  fatBar.style.width = Math.min(fatPercent, 100) + "%";
 }
 
-/* =========================
-   SET TARGETS
-========================= */
-
 function setTargets() {
-  macroTargets.protein =
-    parseFloat(document.getElementById("targetProtein").value) || 0;
+  const proteinEl = document.getElementById("targetProtein");
+  const carbsEl = document.getElementById("targetCarbs");
+  const fatEl = document.getElementById("targetFat");
 
-  macroTargets.carbs =
-    parseFloat(document.getElementById("targetCarbs").value) || 0;
-
-  macroTargets.fat =
-    parseFloat(document.getElementById("targetFat").value) || 0;
+  macroTargets.protein = proteinEl ? parseFloat(proteinEl.value) || 0 : 0;
+  macroTargets.carbs = carbsEl ? parseFloat(carbsEl.value) || 0 : 0;
+  macroTargets.fat = fatEl ? parseFloat(fatEl.value) || 0 : 0;
 
   saveToLocalStorage();
   updateTotals();
 }
 
-/* =========================
-   RENDER INGREDIENTS
-========================= */
-
 function renderIngredients() {
   const list = document.getElementById("ingredientList");
+  if (!list) return;
+
   list.innerHTML = "";
 
   ingredients.forEach(item => {
@@ -162,45 +131,30 @@ function renderIngredients() {
   });
 }
 
-/* =========================
-   LOCAL STORAGE
-========================= */
-
 function saveToLocalStorage() {
-  localStorage.setItem(
-    "macroMatrixIngredients",
-    JSON.stringify(ingredients)
-  );
-
-  localStorage.setItem(
-    "macroMatrixTargets",
-    JSON.stringify(macroTargets)
-  );
+  localStorage.setItem("macroMatrixIngredients", JSON.stringify(ingredients));
+  localStorage.setItem("macroMatrixTargets", JSON.stringify(macroTargets));
 }
 
 function loadFromLocalStorage() {
-  const storedIngredients =
-    localStorage.getItem("macroMatrixIngredients");
+  const storedIngredients = localStorage.getItem("macroMatrixIngredients");
+  const storedTargets = localStorage.getItem("macroMatrixTargets");
 
-  const storedTargets =
-    localStorage.getItem("macroMatrixTargets");
-
-  if (storedIngredients)
-    ingredients = JSON.parse(storedIngredients);
-
-  if (storedTargets)
-    macroTargets = JSON.parse(storedTargets);
+  if (storedIngredients) ingredients = JSON.parse(storedIngredients);
+  if (storedTargets) macroTargets = JSON.parse(storedTargets);
 }
 
-/* =========================
-   CLEAR INPUTS
-========================= */
-
 function clearInputs() {
-  document.getElementById("name").value = "";
-  document.getElementById("quantity").value = 1;
-  document.getElementById("protein").value = "";
-  document.getElementById("carbs").value = "";
-  document.getElementById("fat").value = "";
+  const nameEl = document.getElementById("name");
+  const quantityEl = document.getElementById("quantity");
+  const proteinEl = document.getElementById("protein");
+  const carbsEl = document.getElementById("carbs");
+  const fatEl = document.getElementById("fat");
+
+  if (nameEl) nameEl.value = "";
+  if (quantityEl) quantityEl.value = 1;
+  if (proteinEl) proteinEl.value = "";
+  if (carbsEl) carbsEl.value = "";
+  if (fatEl) fatEl.value = "";
 }
 </script>
