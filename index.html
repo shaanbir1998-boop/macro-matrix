@@ -1,155 +1,178 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Macro Matrix Calculator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      padding: 40px;
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-    }
-
-    table {
-      margin: auto;
-      border-collapse: collapse;
-      background: white;
-      width: 90%;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #222;
-      color: white;
-    }
-
-    input {
-      width: 70px;
-      padding: 5px;
-      text-align: center;
-    }
-
-    .food-name {
-      width: 120px;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .totals {
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-  </style>
-</head>
-
-<body>
-
-<h1>Macro Matrix Calculator</h1>
-
-<table id="macroTable">
-  <thead>
-    <tr>
-      <th>Food</th>
-      <th>Protein (g)</th>
-      <th>Carbs (g)</th>
-      <th>Fats (g)</th>
-      <th>Quantity</th>
-      <th>Total Protein</th>
-      <th>Total Carbs</th>
-      <th>Total Fats</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><input class="food-name" type="text"></td>
-      <td><input type="number" value="0" oninput="calculate()"></td>
-      <td><input type="number" value="0" oninput="calculate()"></td>
-      <td><input type="number" value="0" oninput="calculate()"></td>
-      <td><input type="number" value="1" min="1" oninput="calculate()"></td>
-      <td class="row-protein">0</td>
-      <td class="row-carbs">0</td>
-      <td class="row-fats">0</td>
-    </tr>
-  </tbody>
-</table>
-
-<button onclick="addRow()">Add Food</button>
-
-<div class="totals">
-  Total Protein: <span id="totalProtein">0</span> g |
-  Total Carbs: <span id="totalCarbs">0</span> g |
-  Total Fats: <span id="totalFats">0</span> g
-</div>
-
 <script>
+/*
+  Macro Matrix
+  Copyright © 2026 Shaanbir1998
+  All rights reserved.
+*/
 
-function calculate() {
+let ingredients = [];
+let macroTargets = {
+  protein: 0,
+  carbs: 0,
+  fat: 0
+};
+
+/* --------------------------
+   INITIAL LOAD
+-------------------------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadFromLocalStorage();
+  renderIngredients();
+  updateTotals();
+});
+
+/* --------------------------
+   ADD INGREDIENT
+-------------------------- */
+
+function addIngredient() {
+  const name = document.getElementById("name").value.trim();
+  const quantity = parseFloat(document.getElementById("quantity").value) || 1;
+  const proteinPerUnit = parseFloat(document.getElementById("protein").value) || 0;
+  const carbsPerUnit = parseFloat(document.getElementById("carbs").value) || 0;
+  const fatPerUnit = parseFloat(document.getElementById("fat").value) || 0;
+
+  if (!name) return;
+
+  const ingredient = {
+    id: Date.now(),
+    name,
+    quantity,
+    proteinPerUnit,
+    carbsPerUnit,
+    fatPerUnit
+  };
+
+  ingredients.push(ingredient);
+
+  saveToLocalStorage();
+  renderIngredients();
+  updateTotals();
+  clearInputs();
+}
+
+/* --------------------------
+   DELETE INGREDIENT
+-------------------------- */
+
+function deleteIngredient(id) {
+  ingredients = ingredients.filter(item => item.id !== id);
+  saveToLocalStorage();
+  renderIngredients();
+  updateTotals();
+}
+
+/* --------------------------
+   UPDATE TOTALS
+-------------------------- */
+
+function updateTotals() {
   let totalProtein = 0;
   let totalCarbs = 0;
-  let totalFats = 0;
+  let totalFat = 0;
 
-  const rows = document.querySelectorAll("#macroTable tbody tr");
-
-  rows.forEach(row => {
-    const inputs = row.querySelectorAll("input");
-    const protein = parseFloat(inputs[1].value) || 0;
-    const carbs = parseFloat(inputs[2].value) || 0;
-    const fats = parseFloat(inputs[3].value) || 0;
-    const quantity = parseFloat(inputs[4].value) || 0;
-
-    const rowProtein = protein * quantity;
-    const rowCarbs = carbs * quantity;
-    const rowFats = fats * quantity;
-
-    row.querySelector(".row-protein").innerText = rowProtein;
-    row.querySelector(".row-carbs").innerText = rowCarbs;
-    row.querySelector(".row-fats").innerText = rowFats;
-
-    totalProtein += rowProtein;
-    totalCarbs += rowCarbs;
-    totalFats += rowFats;
+  ingredients.forEach(item => {
+    totalProtein += item.proteinPerUnit * item.quantity;
+    totalCarbs += item.carbsPerUnit * item.quantity;
+    totalFat += item.fatPerUnit * item.quantity;
   });
 
-  document.getElementById("totalProtein").innerText = totalProtein;
-  document.getElementById("totalCarbs").innerText = totalCarbs;
-  document.getElementById("totalFats").innerText = totalFats;
+  document.getElementById("totalProtein").textContent = totalProtein.toFixed(1);
+  document.getElementById("totalCarbs").textContent = totalCarbs.toFixed(1);
+  document.getElementById("totalFat").textContent = totalFat.toFixed(1);
+
+  updateProgressBars(totalProtein, totalCarbs, totalFat);
 }
 
-function addRow() {
-  const table = document.querySelector("#macroTable tbody");
+/* --------------------------
+   PROGRESS BARS
+-------------------------- */
 
-  const newRow = document.createElement("tr");
+function updateProgressBars(p, c, f) {
+  if (!macroTargets.protein && !macroTargets.carbs && !macroTargets.fat) return;
 
-  newRow.innerHTML = `
-    <td><input class="food-name" type="text"></td>
-    <td><input type="number" value="0" oninput="calculate()"></td>
-    <td><input type="number" value="0" oninput="calculate()"></td>
-    <td><input type="number" value="0" oninput="calculate()"></td>
-    <td><input type="number" value="1" min="1" oninput="calculate()"></td>
-    <td class="row-protein">0</td>
-    <td class="row-carbs">0</td>
-    <td class="row-fats">0</td>
-  `;
+  const proteinPercent = (p / macroTargets.protein) * 100 || 0;
+  const carbsPercent = (c / macroTargets.carbs) * 100 || 0;
+  const fatPercent = (f / macroTargets.fat) * 100 || 0;
 
-  table.appendChild(newRow);
+  document.getElementById("proteinBar").style.width = Math.min(proteinPercent, 100) + "%";
+  document.getElementById("carbsBar").style.width = Math.min(carbsPercent, 100) + "%";
+  document.getElementById("fatBar").style.width = Math.min(fatPercent, 100) + "%";
 }
 
+/* --------------------------
+   SET DAILY TARGETS
+-------------------------- */
+
+function setTargets() {
+  macroTargets.protein = parseFloat(document.getElementById("targetProtein").value) || 0;
+  macroTargets.carbs = parseFloat(document.getElementById("targetCarbs").value) || 0;
+  macroTargets.fat = parseFloat(document.getElementById("targetFat").value) || 0;
+
+  saveToLocalStorage();
+  updateTotals();
+}
+
+/* --------------------------
+   RENDER INGREDIENTS
+-------------------------- */
+
+function renderIngredients() {
+  const list = document.getElementById("ingredientList");
+  list.innerHTML = "";
+
+  ingredients.forEach(item => {
+    const totalP = item.proteinPerUnit * item.quantity;
+    const totalC = item.carbsPerUnit * item.quantity;
+    const totalF = item.fatPerUnit * item.quantity;
+
+    const div = document.createElement("div");
+    div.className = "border border-white p-3 flex justify-between items-center";
+
+    div.innerHTML = `
+      <div>
+        <div class="font-mono">${item.name} (x${item.quantity})</div>
+        <div class="text-sm text-gray-400 font-mono">
+          P: ${totalP.toFixed(1)} | C: ${totalC.toFixed(1)} | F: ${totalF.toFixed(1)}
+        </div>
+      </div>
+      <button onclick="deleteIngredient(${item.id})"
+        class="border border-white px-2 py-1 text-sm">
+        DELETE
+      </button>
+    `;
+
+    list.appendChild(div);
+  });
+}
+
+/* --------------------------
+   LOCAL STORAGE
+-------------------------- */
+
+function saveToLocalStorage() {
+  localStorage.setItem("macroMatrixIngredients", JSON.stringify(ingredients));
+  localStorage.setItem("macroMatrixTargets", JSON.stringify(macroTargets));
+}
+
+function loadFromLocalStorage() {
+  const storedIngredients = localStorage.getItem("macroMatrixIngredients");
+  const storedTargets = localStorage.getItem("macroMatrixTargets");
+
+  if (storedIngredients) ingredients = JSON.parse(storedIngredients);
+  if (storedTargets) macroTargets = JSON.parse(storedTargets);
+}
+
+/* --------------------------
+   CLEAR INPUTS
+-------------------------- */
+
+function clearInputs() {
+  document.getElementById("name").value = "";
+  document.getElementById("quantity").value = 1;
+  document.getElementById("protein").value = "";
+  document.getElementById("carbs").value = "";
+  document.getElementById("fat").value = "";
+}
 </script>
-
-</body>
-</html>
