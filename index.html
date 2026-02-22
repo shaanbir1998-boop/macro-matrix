@@ -1,3 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Macro Matrix Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white min-h-screen font-mono p-4">
+  <div class="max-w-5xl mx-auto border border-white p-4">
+    <h1 class="text-xl tracking-widest mb-1">MACRO MATRIX CALCULATOR</h1>
+    <p class="text-gray-400 text-sm mb-4">Ingredient vectors, summed against daily targets.</p>
+
+    <!-- Targets -->
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <input id="targetProtein" type="number" placeholder="TARGET PROTEIN" class="p-2 bg-black border border-white" />
+      <input id="targetCarbs" type="number" placeholder="TARGET CARBS" class="p-2 bg-black border border-white" />
+      <input id="targetFat" type="number" placeholder="TARGET FAT" class="p-2 bg-black border border-white" />
+    </div>
+
+    <!-- Input Row -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+      <input id="name" placeholder="INGREDIENT" class="p-2 bg-black border border-white" />
+      <input id="protein" type="number" placeholder="PROTEIN" class="p-2 bg-black border border-white" />
+      <input id="carbs" type="number" placeholder="CARBS" class="p-2 bg-black border border-white" />
+      <input id="fat" type="number" placeholder="FAT" class="p-2 bg-black border border-white" />
+      <button onclick="addIngredient()" class="border border-white hover:bg-white hover:text-black transition">ADD</button>
+    </div>
+
+    <!-- Matrix Table -->
+    <div class="overflow-x-auto mb-4">
+      <table class="w-full border border-white border-collapse text-xs">
+        <thead>
+          <tr>
+            <th class="border border-white p-2">INGREDIENT</th>
+            <th class="border border-white p-2">P</th>
+            <th class="border border-white p-2">C</th>
+            <th class="border border-white p-2">F</th>
+            <th class="border border-white p-2">EDIT</th>
+          </tr>
+        </thead>
+        <tbody id="table"></tbody>
+      </table>
+    </div>
+
+    <!-- Totals + Progress -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">Σ PROTEIN</div>
+        <div id="totalProtein" class="text-lg">0</div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="proteinBar" class="bg-white h-1"></div></div>
+      </div>
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">Σ CARBS</div>
+        <div id="totalCarbs" class="text-lg">0</div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="carbsBar" class="bg-white h-1"></div></div>
+      </div>
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">Σ FAT</div>
+        <div id="totalFat" class="text-lg">0</div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="fatBar" class="bg-white h-1"></div></div>
+      </div>
+    </div>
+  </div>
 <script>
   let ingredients = JSON.parse(localStorage.getItem('ingredients')) || [];
   let targets = JSON.parse(localStorage.getItem('targets')) || { protein: 0, carbs: 0, fat: 0 };
