@@ -1,23 +1,16 @@
-Macro Matrix — Commercial License
+MIT License
 
-Copyright © 2026 Shaanbir1998
+Copyright (c) 2026 Shaan Bir
 
-All rights reserved.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, subject to the following conditions:
 
-This software and its code are the property of the author (Shaanbir1998).
-The source code is made publicly viewable as a demonstration, but may not
-be redistributed, resold, or repackaged without permission.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-License Grant:
-The purchaser of Macro Matrix Pro is granted a non-exclusive, non-transferable,
-revocable license to use this software for personal or internal business use.
-
-The purchaser MAY:
-• Use and modify this software for personal use.
-
-The purchaser MAY NOT:
-• Redistribute, republish, or resell the software or any derivative;
-• Include the software in products for sale;
-• Claim the software as their original work.
-
-This software is provided “as is”, without warranty of any kind.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
