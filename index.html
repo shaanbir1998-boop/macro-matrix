@@ -2,31 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"> 
+  <meta name="apple-mobile-web-app-capable" content="yes"> 
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Macro Matrix Calculator</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white min-h-screen font-mono p-4">
-  <div class="max-w-5xl mx-auto border border-white p-4">
+  <div class="max-w-md mx-auto border border-white p-4 min-h-screen">
     <h1 class="text-xl tracking-widest mb-1">MACRO MATRIX CALCULATOR</h1>
     <p class="text-gray-400 text-sm mb-4">Ingredient vectors, summed against daily targets.</p>
 
     <!-- Targets -->
-    <div class="grid grid-cols-3 gap-2 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
       <input id="targetProtein" type="number" placeholder="TARGET PROTEIN" class="p-2 bg-black border border-white" />
       <input id="targetCarbs" type="number" placeholder="TARGET CARBS" class="p-2 bg-black border border-white" />
       <input id="targetFat" type="number" placeholder="TARGET FAT" class="p-2 bg-black border border-white" />
     </div>
 
     <!-- Input Row -->
-    <div class="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
+    <div class="grid grid-cols-1 gap-2 mb-3">
       <input id="name" placeholder="INGREDIENT" class="p-2 bg-black border border-white" />
       <div id="results" class="border border-white hidden max-h-40 overflow-y-auto"></div>
       <input id="protein" type="number" placeholder="PROTEIN (per unit)" class="p-2 bg-black border border-white" />
       <input id="carbs" type="number" placeholder="CARBS (per unit)" class="p-2 bg-black border border-white" />
       <input id="fat" type="number" placeholder="FAT (per unit)" class="p-2 bg-black border border-white" />
       <input id="quantity" type="number" value="1" min="1" placeholder="QTY" class="p-2 bg-black border border-white" />
-      <button id="addBtn" class="border border-white hover:bg-white hover:text-black transition">ADD</button>
+      <button id="addBtn" class="border border-white hover:bg-white hover:text-black transition py-3 text-lg">ADD</button>
     </div>
 
     <!-- Save Meal -->
@@ -36,7 +38,7 @@
          class="p-2 bg-black border border-white flex-1" />
 
   <button id="saveMealBtn"
-          class="border border-white hover:bg-white hover:text-black transition px-4">
+          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg">
     SAVE MEAL
   </button>
 </div>
@@ -49,12 +51,12 @@
   </select>
 
   <button id="loadMealBtn"
-          class="border border-white hover:bg-white hover:text-black transition px-4">
+          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg"
     LOAD
   </button>
 
   <button id="deleteMealBtn"
-          class="border border-white hover:bg-white hover:text-black transition px-4">
+          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg"
     DELETE
   </button>
 </div>
@@ -77,27 +79,27 @@
     </div>
 
     <!-- Totals + Progress -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div class="grid grid-cols-1 gap-3 sticky bottom-0 bg-black pb-safe">
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">Σ PROTEIN</div>
-        <div id="totalProtein" class="text-lg">0</div>
+        <div id="totalProtein" class="text-2xl font-semibold">0</div>
         <div class="w-full bg-gray-800 h-1 mt-2"><div id="proteinBar" class="bg-blue-400 h-1 w-0 transition-all duration-300"></div></div>
       </div>
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">Σ CARBS</div>
-        <div id="totalCarbs" class="text-lg">0</div>
+        <div id="totalCarbs" class="text-2xl font-semibold">0</div>
         <div class="w-full bg-gray-800 h-1 mt-2"><div id="carbsBar" class="bg-amber-400 h-1 w-0 transition-all duration-300"></div></div>
       </div>
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">Σ FAT</div>
-        <div id="totalFat" class="text-lg">0</div>
+        <div id="totalFat" class="text-2xl font-semibold">0</div>
         <div class="w-full bg-gray-800 h-1 mt-2"><div id="fatBar" class="bg-purple-400 h-1 w-0 transition-all duration-300"></div></div>
       </div>
     </div>
     <!-- Calories (NEW) -->
   <div class="border border-white p-3">
     <div class="text-xs text-gray-400">Σ CALORIES</div>
-    <div id="totalCalories" class="text-lg">0</div>
+    <div id="totalCalories" class="text-2xl font-semibold">0</div>
   </div>
 
 </div>
@@ -308,7 +310,7 @@ function renderTable() {
       <td class="border border-white p-2 text-center">${totalC}</td>
       <td class="border border-white p-2 text-center">${totalF}</td>
       <td class="border border-white p-2 text-center">
-        <button onclick="editIngredient(${idx})">E</button> |
+        <button class="px-3 py-1" onclick="editIngredient(${idx})">EDIT</button> |
         <button onclick="removeIngredient(${idx})">X</button>
       </td>
     `;
