@@ -1,3 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Macro Matrix Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white min-h-screen font-mono p-4">
+  <div class="max-w-5xl mx-auto border border-white p-4">
+    <h1 class="text-xl tracking-widest mb-1">MACRO MATRIX CALCULATOR</h1>
+    <p class="text-gray-400 text-sm mb-4">Ingredient vectors, summed against daily targets.</p>
+
+    <!-- Targets -->
+    <div class="grid grid-cols-3 gap-2 mb-4">
+      <input id="targetProtein" type="number" placeholder="TARGET PROTEIN" class="p-2 bg-black border border-white" />
+      <input id="targetCarbs" type="number" placeholder="TARGET CARBS" class="p-2 bg-black border border-white" />
+      <input id="targetFat" type="number" placeholder="TARGET FAT" class="p-2 bg-black border border-white" />
+    </div>
+
+    <!-- Input Row -->
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-2 mb-3">
+      <input id="name" placeholder="INGREDIENT" class="p-2 bg-black border border-white" />
+      <div id="results" class="border border-white hidden max-h-40 overflow-y-auto"></div>
+      <input id="protein" type="number" placeholder="PROTEIN (per unit)" class="p-2 bg-black border border-white" />
+      <input id="carbs" type="number" placeholder="CARBS (per unit)" class="p-2 bg-black border border-white" />
+      <input id="fat" type="number" placeholder="FAT (per unit)" class="p-2 bg-black border border-white" />
+      <input id="quantity" type="number" value="1" min="1" placeholder="QTY" class="p-2 bg-black border border-white" />
+      <button id="addBtn" class="border border-white hover:bg-white hover:text-black transition">ADD</button>
+    </div>
+
+    <!-- Save Meal -->
+<div class="flex gap-2 mb-3">
+  <input id="mealName"
+         placeholder="MEAL NAME"
+         class="p-2 bg-black border border-white flex-1" />
+
+  <button id="saveMealBtn"
+          class="border border-white hover:bg-white hover:text-black transition px-4">
+    SAVE MEAL
+  </button>
+</div>
+
+    <!-- Matrix Table -->
+    <div class="overflow-x-auto mb-4">
+      <table class="w-full border border-white border-collapse text-xs">
+        <thead>
+          <tr>
+            <th class="border border-white p-2">INGREDIENT</th>
+            <th class="border border-white p-2">QTY</th>
+            <th class="border border-white p-2">P</th>
+            <th class="border border-white p-2">C</th>
+            <th class="border border-white p-2">F</th>
+            <th class="border border-white p-2">EDIT</th>
+          </tr>
+        </thead>
+        <tbody id="table"></tbody>
+      </table>
+    </div>
+
+    <!-- Totals + Progress -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">Σ PROTEIN</div>
+        <div id="totalProtein" class="text-lg">0</div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="proteinBar" class="bg-white h-1 w-0"></div></div>
+      </div>
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">Σ CARBS</div>
+        <div id="totalCarbs" class="text-lg">0</div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="carbsBar" class="bg-white h-1 w-0"></div></div>
+      </div>
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">Σ FAT</div>
+        <div id="totalFat" class="text-lg">0</div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="fatBar" class="bg-white h-1 w-0"></div></div>
+      </div>
+    </div>
+    <!-- Calories (NEW) -->
+  <div class="border border-white p-3">
+    <div class="text-xs text-gray-400">Σ CALORIES</div>
+    <div id="totalCalories" class="text-lg">0</div>
+  </div>
+
+</div>
+    <div class="text-xs text-gray-500 mt-6 text-center border-t border-white pt-3">
+      © 2026 Shaan Bir — Macro Matrix — MIT License
+    </div>
+  </div>
+
 <script>
 let ingredients = JSON.parse(localStorage.getItem('ingredients')) || [];
 let meals = JSON.parse(localStorage.getItem('meals')) || [];
@@ -7,11 +97,44 @@ const nameInput = document.getElementById('name');
 const proteinInput = document.getElementById('protein');
 const carbsInput = document.getElementById('carbs');
 const fatInput = document.getElementById('fat');
+  const resultsBox = document.getElementById("results");
+
+nameInput.addEventListener("input", async () => {
+  const query = nameInput.value.trim();
+
+  if (query.length < 3) {
+    resultsBox.classList.add("hidden");
+    return;
+  }
+
+  const response = await fetch("/api/search", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ query })
+  });
+
+  const data = await response.json();
+
+  resultsBox.innerHTML = "";
+  resultsBox.classList.remove("hidden");
+
+  data.foods.slice(0,5).forEach(food => {
+    const div = document.createElement("div");
+
+    div.className =
+      "p-2 border-b border-white cursor-pointer hover:bg-white hover:text-black";
+
+    div.textContent = food.description;
+
+    div.onclick = () => selectFood(food.fdcId);
+
+    resultsBox.appendChild(div);
+  });
+});
 const quantityInput = document.getElementById('quantity');
-
-const resultsBox = document.getElementById("results");
-
 const addBtn = document.getElementById('addBtn');
+const saveMealBtn = document.getElementById('saveMealBtn');
+const mealNameInput = document.getElementById('mealName');
 
 const targetProteinInput = document.getElementById('targetProtein');
 const targetCarbsInput = document.getElementById('targetCarbs');
@@ -19,54 +142,27 @@ const targetFatInput = document.getElementById('targetFat');
 
 const tableBody = document.getElementById('table');
 
-const mealNameInput = document.getElementById("mealName");
-const saveMealBtn = document.getElementById("saveMealBtn");
-const mealSelect = document.getElementById("mealSelect");
-const loadMealBtn = document.getElementById("loadMealBtn");
-
 targetProteinInput.value = targets.protein;
 targetCarbsInput.value = targets.carbs;
 targetFatInput.value = targets.fat;
 
-/* ======================
-SAVE ALL
-====================== */
+addBtn.addEventListener('click', addIngredient);
+saveMealBtn.addEventListener('click', saveMeal);
 
 function saveAll() {
-
   localStorage.setItem('ingredients', JSON.stringify(ingredients));
-
-  localStorage.setItem('targets', JSON.stringify({
-    protein: Number(targetProteinInput.value) || 0,
-    carbs: Number(targetCarbsInput.value) || 0,
-    fat: Number(targetFatInput.value) || 0
-  }));
-
-  localStorage.setItem('meals', JSON.stringify(meals));
+  localStorage.setItem('targets', JSON.stringify(targets));
 }
 
-/* ======================
-ADD INGREDIENT
-====================== */
-
-addBtn.addEventListener('click', addIngredient);
-
 function addIngredient() {
-
   if (!nameInput.value.trim()) return;
 
   ingredients.push({
-
     name: nameInput.value.toUpperCase(),
-
     quantity: Number(quantityInput.value) || 1,
-
     protein: Number(proteinInput.value) || 0,
-
     carbs: Number(carbsInput.value) || 0,
-
     fat: Number(fatInput.value) || 0
-
   });
 
   nameInput.value = '';
@@ -78,52 +174,59 @@ function addIngredient() {
   update();
 }
 
-/* ======================
-REMOVE
-====================== */
+function saveMeal() {
 
+  const mealName = mealNameInput.value.trim();
+
+  if (!mealName) {
+    alert("Enter meal name");
+    return;
+  }
+
+  if (ingredients.length === 0) {
+    alert("No ingredients to save");
+    return;
+  }
+
+  const meal = {
+    name: mealName.toUpperCase(),
+    ingredients: [...ingredients],
+    date: new Date().toISOString()
+  };
+
+  meals.push(meal);
+
+  localStorage.setItem("meals", JSON.stringify(meals));
+
+  alert("Meal saved");
+
+  mealNameInput.value = "";
+}
+  
 function removeIngredient(index) {
-
   ingredients.splice(index, 1);
-
   update();
 }
 
-/* ======================
-EDIT
-====================== */
-
 function editIngredient(index) {
-
   const i = ingredients[index];
-
   nameInput.value = i.name;
   proteinInput.value = i.protein;
   carbsInput.value = i.carbs;
   fatInput.value = i.fat;
   quantityInput.value = i.quantity;
-
   ingredients.splice(index, 1);
-
   update();
 }
 
-/* ======================
-RENDER TABLE
-====================== */
-
 function renderTable() {
-
   tableBody.innerHTML = '';
-
   ingredients.forEach((i, idx) => {
-
     const totalP = i.protein * i.quantity;
     const totalC = i.carbs * i.quantity;
     const totalF = i.fat * i.quantity;
 
     const row = document.createElement('tr');
-
     row.innerHTML = `
       <td class="border border-white p-2">${i.name}</td>
       <td class="border border-white p-2 text-center">${i.quantity}</td>
@@ -135,31 +238,20 @@ function renderTable() {
         <button onclick="removeIngredient(${idx})">X</button>
       </td>
     `;
-
     tableBody.appendChild(row);
   });
 }
 
-/* ======================
-CALCULATE TOTALS
-====================== */
-
 function calculateTotals() {
-
   const totals = ingredients.reduce((a, i) => {
-
     a.protein += i.protein * i.quantity;
     a.carbs += i.carbs * i.quantity;
     a.fat += i.fat * i.quantity;
-
     return a;
-
   }, { protein: 0, carbs: 0, fat: 0 });
 
-  const calories =
-    totals.protein * 4 +
-    totals.carbs * 4 +
-    totals.fat * 9;
+   // ADD THIS LINE
+  const calories = (totals.protein * 4) + (totals.carbs * 4) + (totals.fat * 9);
 
   targets.protein = Number(targetProteinInput.value) || 0;
   targets.carbs = Number(targetCarbsInput.value) || 0;
@@ -169,8 +261,8 @@ function calculateTotals() {
   document.getElementById('totalCarbs').textContent = totals.carbs;
   document.getElementById('totalFat').textContent = totals.fat;
 
-  document.getElementById('totalCalories').textContent =
-    calories.toFixed(0);
+    // ADD THIS LINE
+  document.getElementById('totalCalories').textContent = calories.toFixed(0);
 
   document.getElementById('proteinBar').style.width =
     targets.protein ? Math.min(100, totals.protein / targets.protein * 100) + '%' : '0%';
@@ -182,174 +274,31 @@ function calculateTotals() {
     targets.fat ? Math.min(100, totals.fat / targets.fat * 100) + '%' : '0%';
 }
 
-/* ======================
-UPDATE
-====================== */
-
 function update() {
-
   renderTable();
-
   calculateTotals();
-
   saveAll();
 }
 
-/* ======================
-SAVE MEAL
-====================== */
-
-saveMealBtn.addEventListener("click", saveMeal);
-
-function saveMeal() {
-
-  if (!mealNameInput.value.trim()) return;
-
-  meals.push({
-
-    name: mealNameInput.value.toUpperCase(),
-
-    ingredients: JSON.parse(JSON.stringify(ingredients)),
-
-    date: new Date().toISOString()
-
-  });
-
-  mealNameInput.value = '';
-
-  populateMealDropdown();
-
-  saveAll();
-}
-
-/* ======================
-LOAD MEAL
-====================== */
-
-loadMealBtn.addEventListener("click", loadMeal);
-
-function loadMeal() {
-
-  const index = mealSelect.value;
-
-  if (index === '') return;
-
-  ingredients =
-    JSON.parse(JSON.stringify(meals[index].ingredients));
-
-  update();
-}
-
-/* ======================
-POPULATE DROPDOWN
-====================== */
-
-function populateMealDropdown() {
-
-  mealSelect.innerHTML =
-    '<option value="">LOAD MEAL</option>';
-
-  meals.forEach((meal, index) => {
-
-    const option =
-      document.createElement('option');
-
-    option.value = index;
-
-    option.textContent = meal.name;
-
-    mealSelect.appendChild(option);
-  });
-}
-
-/* ======================
-USDA SEARCH
-====================== */
-
-nameInput.addEventListener("input", async () => {
-
-  const query = nameInput.value.trim();
-
-  if (query.length < 3) {
-
-    resultsBox.classList.add("hidden");
-
-    return;
-  }
-
-  const response =
-    await fetch("/api/search", {
-
-      method: "POST",
-
-      headers: {"Content-Type":"application/json"},
-
-      body: JSON.stringify({ query })
-    });
-
+update();
+  async function selectFood(fdcId) {
+  const response = await fetch(`/api/food?id=${fdcId}`);
   const data = await response.json();
 
-  resultsBox.innerHTML = '';
+  const nutrients = data.foodNutrients;
 
-  resultsBox.classList.remove("hidden");
+  const protein = nutrients.find(n => n.nutrient.name === "Protein");
+  const carbs = nutrients.find(n => n.nutrient.name === "Carbohydrate, by difference");
+  const fat = nutrients.find(n => n.nutrient.name === "Total lipid (fat)");
 
-  data.foods.slice(0,5).forEach(food => {
+  proteinInput.value = protein ? protein.amount : 0;
+  carbsInput.value = carbs ? carbs.amount : 0;
+  fatInput.value = fat ? fat.amount : 0;
 
-    const div = document.createElement("div");
-
-    div.className =
-      "p-2 border-b border-white cursor-pointer hover:bg-white hover:text-black";
-
-    div.textContent = food.description;
-
-    div.onclick =
-      () => selectFood(food.fdcId);
-
-    resultsBox.appendChild(div);
-  });
-});
-
-async function selectFood(fdcId) {
-
-  const response =
-    await fetch(`/api/food?id=${fdcId}`);
-
-  const data =
-    await response.json();
-
-  const nutrients =
-    data.foodNutrients;
-
-  const protein =
-    nutrients.find(n => n.nutrient.name === "Protein");
-
-  const carbs =
-    nutrients.find(n => n.nutrient.name === "Carbohydrate, by difference");
-
-  const fat =
-    nutrients.find(n => n.nutrient.name === "Total lipid (fat)");
-
-  proteinInput.value =
-    protein ? protein.amount : 0;
-
-  carbsInput.value =
-    carbs ? carbs.amount : 0;
-
-  fatInput.value =
-    fat ? fat.amount : 0;
-
-  nameInput.value =
-    data.description;
+  nameInput.value = data.description;
 
   resultsBox.classList.add("hidden");
 }
-
-/* ======================
-INIT
-====================== */
-
-populateMealDropdown();
-
-update();
-
 </script>
+</body>
+</html>
