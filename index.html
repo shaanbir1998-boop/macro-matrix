@@ -81,17 +81,17 @@
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">Σ PROTEIN</div>
         <div id="totalProtein" class="text-lg">0</div>
-        <div class="w-full bg-gray-800 h-1 mt-2"><div id="proteinBar" class="bg-white h-1 w-0"></div></div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="proteinBar" class="bg-blue-400 h-1 w-0 transition-all duration-300"></div></div>
       </div>
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">Σ CARBS</div>
         <div id="totalCarbs" class="text-lg">0</div>
-        <div class="w-full bg-gray-800 h-1 mt-2"><div id="carbsBar" class="bg-white h-1 w-0"></div></div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="carbsBar" class="bg-amber-400 h-1 w-0 transition-all duration-300"></div></div>
       </div>
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">Σ FAT</div>
         <div id="totalFat" class="text-lg">0</div>
-        <div class="w-full bg-gray-800 h-1 mt-2"><div id="fatBar" class="bg-white h-1 w-0"></div></div>
+        <div class="w-full bg-gray-800 h-1 mt-2"><div id="fatBar" class="bg-purple-400 h-1 w-0 transition-all duration-300"></div></div>
       </div>
     </div>
     <!-- Calories (NEW) -->
@@ -346,12 +346,42 @@ function calculateTotals() {
 
   document.getElementById('fatBar').style.width =
     targets.fat ? Math.min(100, totals.fat / targets.fat * 100) + '%' : '0%';
+  
+const proteinPercent = targets.protein ? totals.protein / targets.protein : 0;
+const carbsPercent = targets.carbs ? totals.carbs / targets.carbs : 0;
+const fatPercent = targets.fat ? totals.fat / targets.fat : 0;
+
+setBarColor("proteinBar", proteinPercent, "blue");
+setBarColor("carbsBar", carbsPercent, "amber");
+setBarColor("fatBar", fatPercent, "purple");
 }
 
 function update() {
   renderTable();
   calculateTotals();
   saveAll();
+}
+
+  // ADD THIS FUNCTION RIGHT HERE
+function setBarColor(id, percent, color) {
+
+  const bar = document.getElementById(id);
+
+  bar.classList.remove(
+    "bg-blue-400","bg-amber-400","bg-purple-400",
+    "bg-green-400","bg-red-400"
+  );
+
+  if (percent > 1.1) {
+    bar.classList.add("bg-red-400");
+  }
+  else if (percent >= 0.95) {
+    bar.classList.add("bg-green-400");
+  }
+  else {
+    bar.classList.add(`bg-${color}-400`);
+  }
+
 }
 
 update();
