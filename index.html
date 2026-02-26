@@ -10,6 +10,27 @@
   <div class="max-w-5xl mx-auto border border-white p-4">
     <h1 class="text-xl tracking-widest mb-1">MACRO MATRIX CALCULATOR</h1>
     <p class="text-gray-400 text-sm mb-4">Ingredient vectors, summed against daily targets.</p>
+    
+    <!-- Meal Controls -->
+<div class="flex gap-2 mb-4">
+  <input id="mealName" placeholder="MEAL NAME"
+    class="p-2 bg-black border border-white flex-1" />
+
+  <button id="saveMealBtn"
+    class="border border-white px-3 hover:bg-white hover:text-black">
+    SAVE MEAL
+  </button>
+
+  <select id="mealSelect"
+    class="p-2 bg-black border border-white">
+    <option value="">LOAD MEAL</option>
+  </select>
+
+  <button id="loadMealBtn"
+    class="border border-white px-3 hover:bg-white hover:text-black">
+    LOAD
+  </button>
+</div>
 
     <!-- Targets -->
     <div class="grid grid-cols-3 gap-2 mb-4">
@@ -141,6 +162,12 @@ const targetCarbsInput = document.getElementById('targetCarbs');
 const targetFatInput = document.getElementById('targetFat');
 
 const tableBody = document.getElementById('table');
+const mealNameInput = document.getElementById("mealName");
+const saveMealBtn = document.getElementById("saveMealBtn");
+const mealSelect = document.getElementById("mealSelect");
+const loadMealBtn = document.getElementById("loadMealBtn");
+
+let meals = JSON.parse(localStorage.getItem("meals")) || [];
 
 targetProteinInput.value = targets.protein;
 targetCarbsInput.value = targets.carbs;
@@ -148,6 +175,7 @@ targetFatInput.value = targets.fat;
 
 addBtn.addEventListener('click', addIngredient);
 saveMealBtn.addEventListener('click', saveMeal);
+loadMealBtn.addEventListener("click", loadMeal);
 
 function saveAll() {
   localStorage.setItem('ingredients', JSON.stringify(ingredients));
@@ -279,7 +307,47 @@ function update() {
   calculateTotals();
   saveAll();
 }
+  
+function populateMealDropdown() {
+  mealSelect.innerHTML = '<option value="">LOAD MEAL</option>';
 
+  meals.forEach((meal, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = meal.name;
+    mealSelect.appendChild(option);
+  });
+}
+  
+  function saveMeal() {
+  if (!mealNameInput.value.trim()) return;
+
+  const meal = {
+    name: mealNameInput.value.toUpperCase(),
+    ingredients: ingredients,
+    date: new Date().toISOString()
+  };
+
+  meals.push(meal);
+
+  localStorage.setItem("meals", JSON.stringify(meals));
+
+  mealNameInput.value = "";
+
+  populateMealDropdown();
+}
+
+  function loadMeal() {
+  const index = mealSelect.value;
+
+  if (index === "") return;
+
+  ingredients = meals[index].ingredients;
+
+  update();
+}
+
+populateMealDropdown();
 update();
   async function selectFood(fdcId) {
   const response = await fetch(`/api/food?id=${fdcId}`);
