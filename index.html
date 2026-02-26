@@ -29,6 +29,18 @@
       <button id="addBtn" class="border border-white hover:bg-white hover:text-black transition">ADD</button>
     </div>
 
+    <!-- Save Meal -->
+<div class="flex gap-2 mb-3">
+  <input id="mealName"
+         placeholder="MEAL NAME"
+         class="p-2 bg-black border border-white flex-1" />
+
+  <button id="saveMealBtn"
+          class="border border-white hover:bg-white hover:text-black transition px-4">
+    SAVE MEAL
+  </button>
+</div>
+
     <!-- Matrix Table -->
     <div class="overflow-x-auto mb-4">
       <table class="w-full border border-white border-collapse text-xs">
@@ -78,6 +90,7 @@
 
 <script>
 let ingredients = JSON.parse(localStorage.getItem('ingredients')) || [];
+let meals = JSON.parse(localStorage.getItem('meals')) || [];
 let targets = JSON.parse(localStorage.getItem('targets')) || { protein: 0, carbs: 0, fat: 0 };
 
 const nameInput = document.getElementById('name');
@@ -120,6 +133,8 @@ nameInput.addEventListener("input", async () => {
 });
 const quantityInput = document.getElementById('quantity');
 const addBtn = document.getElementById('addBtn');
+const saveMealBtn = document.getElementById('saveMealBtn');
+const mealNameInput = document.getElementById('mealName');
 
 const targetProteinInput = document.getElementById('targetProtein');
 const targetCarbsInput = document.getElementById('targetCarbs');
@@ -132,6 +147,7 @@ targetCarbsInput.value = targets.carbs;
 targetFatInput.value = targets.fat;
 
 addBtn.addEventListener('click', addIngredient);
+saveMealBtn.addEventListener('click', saveMeal);
 
 function saveAll() {
   localStorage.setItem('ingredients', JSON.stringify(ingredients));
@@ -158,6 +174,35 @@ function addIngredient() {
   update();
 }
 
+function saveMeal() {
+
+  const mealName = mealNameInput.value.trim();
+
+  if (!mealName) {
+    alert("Enter meal name");
+    return;
+  }
+
+  if (ingredients.length === 0) {
+    alert("No ingredients to save");
+    return;
+  }
+
+  const meal = {
+    name: mealName.toUpperCase(),
+    ingredients: [...ingredients],
+    date: new Date().toISOString()
+  };
+
+  meals.push(meal);
+
+  localStorage.setItem("meals", JSON.stringify(meals));
+
+  alert("Meal saved");
+
+  mealNameInput.value = "";
+}
+  
 function removeIngredient(index) {
   ingredients.splice(index, 1);
   update();
