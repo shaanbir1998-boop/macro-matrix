@@ -41,6 +41,24 @@
   </button>
 </div>
 
+    <!-- Load Meal -->
+<div class="flex gap-2 mb-3">
+  <select id="mealSelect"
+          class="p-2 bg-black border border-white flex-1">
+    <option value="">LOAD MEAL</option>
+  </select>
+
+  <button id="loadMealBtn"
+          class="border border-white hover:bg-white hover:text-black transition px-4">
+    LOAD
+  </button>
+
+  <button id="deleteMealBtn"
+          class="border border-white hover:bg-white hover:text-black transition px-4">
+    DELETE
+  </button>
+</div>
+
     <!-- Matrix Table -->
     <div class="overflow-x-auto mb-4">
       <table class="w-full border border-white border-collapse text-xs">
@@ -135,6 +153,9 @@ const quantityInput = document.getElementById('quantity');
 const addBtn = document.getElementById('addBtn');
 const saveMealBtn = document.getElementById('saveMealBtn');
 const mealNameInput = document.getElementById('mealName');
+const mealSelect = document.getElementById('mealSelect');
+const loadMealBtn = document.getElementById('loadMealBtn');
+const deleteMealBtn = document.getElementById('deleteMealBtn');
 
 const targetProteinInput = document.getElementById('targetProtein');
 const targetCarbsInput = document.getElementById('targetCarbs');
@@ -148,6 +169,8 @@ targetFatInput.value = targets.fat;
 
 addBtn.addEventListener('click', addIngredient);
 saveMealBtn.addEventListener('click', saveMeal);
+loadMealBtn.addEventListener('click', loadMeal);
+deleteMealBtn.addEventListener('click', deleteMeal);
 
 function saveAll() {
   localStorage.setItem('ingredients', JSON.stringify(ingredients));
@@ -198,9 +221,60 @@ function saveMeal() {
 
   localStorage.setItem("meals", JSON.stringify(meals));
 
+  populateMealDropdown();
+
   alert("Meal saved");
 
   mealNameInput.value = "";
+}
+
+  function populateMealDropdown() {
+
+  mealSelect.innerHTML = '<option value="">LOAD MEAL</option>';
+
+  meals.forEach((meal, index) => {
+
+    const option = document.createElement("option");
+
+    option.value = index;
+
+    option.textContent =
+      meal.name + " (" +
+      new Date(meal.date).toLocaleDateString() +
+      ")";
+
+    mealSelect.appendChild(option);
+
+  });
+
+}
+
+function loadMeal() {
+
+  const index = mealSelect.value;
+
+  if (index === "") return;
+
+  ingredients = [...meals[index].ingredients];
+
+  update();
+
+}
+
+function deleteMeal() {
+
+  const index = mealSelect.value;
+
+  if (index === "") return;
+
+  if (!confirm("Delete this meal?")) return;
+
+  meals.splice(index, 1);
+
+  localStorage.setItem("meals", JSON.stringify(meals));
+
+  populateMealDropdown();
+
 }
   
 function removeIngredient(index) {
@@ -281,6 +355,7 @@ function update() {
 }
 
 update();
+  populateMealDropdown();
   async function selectFood(fdcId) {
   const response = await fetch(`/api/food?id=${fdcId}`);
   const data = await response.json();
