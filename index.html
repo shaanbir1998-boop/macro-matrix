@@ -47,7 +47,7 @@
     </div>
 
     <!-- Totals + Progress -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">Σ PROTEIN</div>
         <div id="totalProtein" class="text-lg">0</div>
@@ -64,6 +64,13 @@
         <div class="w-full bg-gray-800 h-1 mt-2"><div id="fatBar" class="bg-white h-1 w-0"></div></div>
       </div>
     </div>
+    <!-- Calories (NEW) -->
+  <div class="border border-white p-3">
+    <div class="text-xs text-gray-400">Σ CALORIES</div>
+    <div id="totalCalories" class="text-lg">0</div>
+  </div>
+
+</div>
     <div class="text-xs text-gray-500 mt-6 text-center border-t border-white pt-3">
       © 2026 Shaan Bir — Macro Matrix — MIT License
     </div>
@@ -198,6 +205,9 @@ function calculateTotals() {
     return a;
   }, { protein: 0, carbs: 0, fat: 0 });
 
+   // ADD THIS LINE
+  const calories = (totals.protein * 4) + (totals.carbs * 4) + (totals.fat * 9);
+
   targets.protein = Number(targetProteinInput.value) || 0;
   targets.carbs = Number(targetCarbsInput.value) || 0;
   targets.fat = Number(targetFatInput.value) || 0;
@@ -205,6 +215,9 @@ function calculateTotals() {
   document.getElementById('totalProtein').textContent = totals.protein;
   document.getElementById('totalCarbs').textContent = totals.carbs;
   document.getElementById('totalFat').textContent = totals.fat;
+
+    // ADD THIS LINE
+  document.getElementById('totalCalories').textContent = calories.toFixed(0);
 
   document.getElementById('proteinBar').style.width =
     targets.protein ? Math.min(100, totals.protein / targets.protein * 100) + '%' : '0%';
