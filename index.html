@@ -393,12 +393,20 @@ async function selectFood(fdcId) {
   const response = await fetch(`/api/food?id=${fdcId}`);
   const data = await response.json();
 
-  // Use clean macro response from backend
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
   proteinInput.value = data.protein ?? 0;
   carbsInput.value = data.carbs ?? 0;
   fatInput.value = data.fats ?? 0;
-
   nameInput.value = (data.name ?? "").toUpperCase();
+
+  // Optional: show what "1 item" means
+  // e.g., "1 sandwich" or "1 medium"
+  // console.log("Serving:", data.servingLabel, "(", data.grams, "g )");
+
   resultsBox.classList.add("hidden");
 }
   
