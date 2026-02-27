@@ -27,6 +27,12 @@
       <input id="protein" type="number" placeholder="PROTEIN (per unit)" class="p-2 bg-black border border-white" />
       <input id="carbs" type="number" placeholder="CARBS (per unit)" class="p-2 bg-black border border-white" />
       <input id="fat" type="number" placeholder="FAT (per unit)" class="p-2 bg-black border border-white" />
+      <label class="block text-sm mt-3">Portion</label>
+<select id="portionSelect" class="w-full p-2 rounded bg-zinc-900 border border-zinc-700">
+  <option value="">Select a portion…</option>
+</select>
+
+<div id="portionHint" class="text-xs text-zinc-400 mt-1"></div>
       <input id="quantity" type="number" value="1" min="1" placeholder="QTY" class="p-2 bg-black border border-white" />
       <button id="addBtn" class="border border-white hover:bg-white hover:text-black transition py-3 text-lg">ADD</button>
     </div>
@@ -117,6 +123,10 @@ const nameInput = document.getElementById('name');
 const proteinInput = document.getElementById('protein');
 const carbsInput = document.getElementById('carbs');
 const fatInput = document.getElementById('fat');
+  const portionSelect = document.getElementById("portionSelect");
+const portionHint = document.getElementById("portionHint");
+
+let currentFood = null;
   const resultsBox = document.getElementById("results");
 
 nameInput.addEventListener("input", async () => {
@@ -173,6 +183,11 @@ addBtn.addEventListener('click', addIngredient);
 saveMealBtn.addEventListener('click', saveMeal);
 loadMealBtn.addEventListener('click', loadMeal);
 deleteMealBtn.addEventListener('click', deleteMeal);
+portionSelect.addEventListener("change", (e) => {
+  const grams = e.target.value;
+  if (!grams) return;
+  fillMacrosFromGrams(grams);
+});
 
 function saveAll() {
   localStorage.setItem('ingredients', JSON.stringify(ingredients));
@@ -388,6 +403,29 @@ function setBarColor(id, percent, color) {
 
 update();
   populateMealDropdown();
+
+  function scaled(per100, grams) {
+  const factor = grams / 100;
+  return {
+    protein: +(per100.protein * factor).toFixed(1),
+    carbs: +(per100.carbs * factor).toFixed(1),
+    fats: +(per100.fats * factor).toFixed(1),
+    calories: +(per100.calories * factor).toFixed(0),
+  };
+}
+
+function fillMacrosFromGrams(grams) {
+  if (!currentFood) return;
+
+  const gramsNum = Number(grams);
+  const m = scaled(currentFood.per100, gramsNum);
+
+  proteinInput.value = m.protein;
+  carbsInput.value = m.carbs;
+  fatInput.value = m.fats;
+
+  portionHint.textContent = `Using ${gramsNum} g (cal: ${m.calories})`;
+}
   
 async function selectFood(fdcId) {
   const response = await fetch(`/api/food?id=${fdcId}`);
@@ -397,6 +435,41 @@ async function selectFood(fdcId) {
     alert(data.error);
     return;
   }
+
+  // store the whole response so other functions can use it
+  currentFood = data;
+
+  // fill name
+  nameInput.value = (data.name ?? "").toUpperCase();
+
+  // build dropdown options
+  portionSelect.innerHTML = "";
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Select a portion…";
+  portionSelect.appendChild(placeholder);
+
+  const options =
+    (data.portions && data.portions.length)
+      ? data.portions
+      : [{ label: "100 g (default)", grams: 100 }];
+
+  for (const p of options) {
+    const opt = document.createElement("option");
+    opt.value = p.grams;
+    opt.textContent = `${p.label} (${Math.round(p.grams)} g)`;
+    portionSelect.appendChild(opt);
+  }
+
+  // set default grams + fill macros immediately
+  const defaultGrams = data.defaultGrams ?? (options[0]?.grams ?? 100);
+  portionSelect.value = String(defaultGrams);
+  fillMacrosFromGrams(defaultGrams);
+
+  // hide dropdown results list
+  resultsBox.classList.add("hidden");
+}
 
   proteinInput.value = data.protein ?? 0;
   carbsInput.value = data.carbs ?? 0;
