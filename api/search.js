@@ -9,9 +9,20 @@ export default async function handler(req, res) {
     }
 
     // Step 3: Call USDA API using GET
-    const response = await fetch(
-      `https://api.nal.usda.gov/fdc/v1/foods/search?api_key=${process.env.USDA_KEY}&query=${encodeURIComponent(query)}&pageSize=5&dataType=Foundation`
-    );
+    async function searchFood(searchTerm) {
+  const res = await fetch("/api/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ query: searchTerm })
+  });
+
+  const data = await res.json();
+
+  return data.foods;
+}
+      
 
     // Step 4: Convert to JSON
     const data = await response.json();
