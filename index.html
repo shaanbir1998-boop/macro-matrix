@@ -388,24 +388,20 @@ function setBarColor(id, percent, color) {
 
 update();
   populateMealDropdown();
-  async function selectFood(fdcId) {
+  
+async function selectFood(fdcId) {
   const response = await fetch(`/api/food?id=${fdcId}`);
   const data = await response.json();
 
-  const nutrients = data.foodNutrients;
+  // Use clean macro response from backend
+  proteinInput.value = data.protein ?? 0;
+  carbsInput.value = data.carbs ?? 0;
+  fatInput.value = data.fats ?? 0;
 
-  const protein = nutrients.find(n => n.nutrient.name === "Protein");
-  const carbs = nutrients.find(n => n.nutrient.name === "Carbohydrate, by difference");
-  const fat = nutrients.find(n => n.nutrient.name === "Total lipid (fat)");
-
-  proteinInput.value = protein ? protein.amount : 0;
-  carbsInput.value = carbs ? carbs.amount : 0;
-  fatInput.value = fat ? fat.amount : 0;
-
-  nameInput.value = data.description;
-
+  nameInput.value = (data.name ?? "").toUpperCase();
   resultsBox.classList.add("hidden");
 }
+  
 </script>
 </body>
 </html>
