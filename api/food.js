@@ -10,67 +10,66 @@ export default async function handler(req, res) {
 
     const nutrients = data.foodNutrients ?? [];
 
-    const per100 = (name) =>
-      nutrients.find((n) => n?.nutrient?.name === name)?.amount ?? 0;
+    const per100g = (name) =>
+      (nutrients.find((n) => n?.nutrient?.name === name)?.amount) ?? 0;
 
-    const protein100 = per100("Protein");
-    const carbs100 = per100("Carbohydrate, by difference");
-    const fats100 = per100("Total lipid (fat)");
-    const calories100 = per100("Energy");
+    const protein100 = per100g("Protein");
+    const carbs100 = per100g("Carbohydrate, by difference");
+    const fats100 = per100g("Total lipid (fat)");
+    const calories100 = per100g("Energy");
 
-    // Build portion options (grams + label)
-    const portions = [];
+    // --------- Choose a "1 item" gram weight ---------
+    // Priority:
+    // 1) Branded servingSize (often represents 1 serving)
+    // 2) A portion in foodPortions that looks like 1 serving/item
+    // 3) fallback: 100g (can't infer item size)
+    let grams = null;
+    let servingLabel = null;
 
-    // A) branded serving size (often best for "1 item")
+    // 1) servingSize
     if (typeof data.servingSize === "number" && data.servingSize > 0) {
-      portions.push({
-        label: data.householdServingFullText || "1 serving",
-        grams: data.servingSize
-      });
+      grams = data.servingSize;
+      servingLabel = data.householdServingFullText || "1 serving";
     }
 
-    // B) foodPortions (Foundation/Survey foods)
-    if (Array.isArray(data.foodPortions)) {
-      for (const p of data.foodPortions) {
-        const grams = p?.gramWeight;
-        if (!grams || grams <= 0) continue;
+    // 2) foodPortions fallback
+    if (!grams && Array.isArray(data.foodPortions) && data.foodPortions.length) {
+      // Try to find a portion that represents "1" item/serving
+      const p =
+        data.foodPortions.find((x) => x.amount === 1 && x.gramWeight > 0) ||
+        data.foodPortions.find((x) => x.gramWeight > 0) ||
+        null;
 
-        const amount = p.amount ?? 1;
-        const unit = p.measureUnit?.name || "";
-        const modifier = p.modifier || unit || "portion";
-
-        const label = `${amount} ${modifier}`.trim(); // e.g. "1 medium", "1 cup"
-        portions.push({ label, grams });
+      if (p) {
+        grams = p.gramWeight;
+        // Example label: "1 medium" or "1 cup"
+        const unit = p.measureUnit?.name || "portion";
+        servingLabel = `${p.amount || 1} ${p.modifier || unit}`.trim();
       }
     }
 
-    // de-dup similar portion labels/grams
-    const dedup = [];
-    const seen = new Set();
-    for (const p of portions) {
-      const key = `${p.label.toLowerCase()}|${Math.round(p.grams)}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        dedup.push({ label: p.label, grams: p.grams });
-      }
+    // 3) final fallback
+    if (!grams) {
+      grams = 100;
+      servingLabel = "100 g (default)";
     }
 
-    // Default grams choice:
-    // 1) servingSize if present
-    // 2) a portion with amount===1
-    // 3) first portion
-    // 4) fallback 100g
-    let defaultGrams =
-      (typeof data.servingSize === "number" && data.servingSize > 0)
-        ? data.servingSize
-        : (data.foodPortions?.find((p) => p.amount === 1 && p.gramWeight > 0)?.gramWeight)
-          ?? (dedup[0]?.grams ?? 100);
+    // Scale from per-100g to per-serving/item
+    const factor = grams / 100;
+
+    const protein = +(protein100 * factor).toFixed(1);
+    const carbs = +(carbs100 * factor).toFixed(1);
+    const fats = +(fats100 * factor).toFixed(1);
+    const calories = +(calories100 * factor).toFixed(0);
 
     return res.status(200).json({
       name: data.description ?? "",
-      per100: { protein: protein100, carbs: carbs100, fats: fats100, calories: calories100 },
-      portions: dedup,               // [{label, grams}, ...]
-      defaultGrams                   // number
+      protein,
+      carbs,
+      fats,
+      calories,
+      servingLabel,
+      grams
     });
   } catch (err) {
     console.error(err);
