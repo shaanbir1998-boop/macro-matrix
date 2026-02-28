@@ -7,24 +7,22 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>BMR / TDEE</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Prevent iOS zoom on input focus */
+    input, select, button { font-size: 16px; }
+  </style>
 </head>
 
 <body class="bg-black text-white min-h-screen font-mono p-4">
 
   <div class="max-w-md mx-auto border border-white p-4 min-h-screen">
 
-    <div class="flex justify-between items-start mb-4">
-      <div>
-        <h1 class="text-xl tracking-widest">BMR / TDEE</h1>
-        <p class="text-gray-400 text-sm">
-          Basal metabolic rate and maintenance calories.
-        </p>
-      </div>
-
-      <a href="/"
-         class="border border-white px-3 py-1 hover:bg-white hover:text-black text-sm">
-        BACK
-      </a>
+    <!-- Header (back button moved lower per request) -->
+    <div class="mb-4">
+      <h1 class="text-xl tracking-widest">BMR / TDEE</h1>
+      <p class="text-gray-400 text-sm">
+        Basal metabolic rate and maintenance calories.
+      </p>
     </div>
 
     <div class="border border-white p-3 mb-4 text-sm text-gray-300">
@@ -32,12 +30,12 @@
       <p><span class="text-white">TDEE</span> = maintenance calories (BMR × activity).</p>
     </div>
 
+    <!-- Inputs -->
     <div class="grid grid-cols-2 gap-3 mb-4">
 
       <div class="col-span-2">
         <label class="text-sm">SEX</label>
-        <select id="sex"
-          class="w-full p-2 bg-black border border-white mt-1">
+        <select id="sex" class="w-full p-2 bg-black border border-white mt-1">
           <option value="male">MALE</option>
           <option value="female">FEMALE</option>
         </select>
@@ -45,36 +43,35 @@
 
       <div>
         <label class="text-sm">AGE</label>
-        <input id="age" type="number"
+        <input id="age" type="number" min="10" max="120"
           class="w-full p-2 bg-black border border-white mt-1"
-          inputmode="numeric">
+          inputmode="numeric" placeholder="27">
       </div>
 
       <div>
         <label class="text-sm">WEIGHT (LB)</label>
-        <input id="weight_lb" type="number"
+        <input id="weight_lb" type="number" min="50" max="600"
           class="w-full p-2 bg-black border border-white mt-1"
-          inputmode="decimal">
+          inputmode="decimal" placeholder="190">
       </div>
 
       <div>
         <label class="text-sm">HEIGHT (FT)</label>
-        <input id="height_ft" type="number"
+        <input id="height_ft" type="number" min="3" max="8"
           class="w-full p-2 bg-black border border-white mt-1"
-          inputmode="numeric">
+          inputmode="numeric" placeholder="5">
       </div>
 
       <div>
         <label class="text-sm">HEIGHT (IN)</label>
-        <input id="height_in" type="number"
+        <input id="height_in" type="number" min="0" max="11"
           class="w-full p-2 bg-black border border-white mt-1"
-          inputmode="numeric">
+          inputmode="numeric" placeholder="9">
       </div>
 
       <div class="col-span-2">
         <label class="text-sm">ACTIVITY LEVEL</label>
-        <select id="activity"
-          class="w-full p-2 bg-black border border-white mt-1">
+        <select id="activity" class="w-full p-2 bg-black border border-white mt-1">
           <option value="1.2">SEDENTARY — 1.2</option>
           <option value="1.375">LIGHT — 1.375</option>
           <option value="1.55" selected>MODERATE — 1.55</option>
@@ -83,59 +80,168 @@
         </select>
       </div>
 
+      <div class="col-span-2">
+        <label class="text-sm">GOAL (APPLIES TO MACROS)</label>
+        <select id="goal" class="w-full p-2 bg-black border border-white mt-1">
+          <option value="1.0" selected>MAINTAIN — ×1.00</option>
+          <option value="0.90">CUT 10% — ×0.90</option>
+          <option value="0.85">CUT 15% — ×0.85</option>
+          <option value="1.10">LEAN BULK 10% — ×1.10</option>
+          <option value="1.15">BULK 15% — ×1.15</option>
+        </select>
+      </div>
+
     </div>
 
-    <button onclick="calculate()"
-      class="w-full border border-white py-2 hover:bg-white hover:text-black mb-4">
-      CALCULATE
-    </button>
+    <!-- Buttons -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <button onclick="calculateAll()"
+        class="w-full border border-white py-2 hover:bg-white hover:text-black">
+        CALCULATE
+      </button>
+      <button onclick="clearAll()"
+        class="w-full border border-white py-2 hover:bg-white hover:text-black">
+        CLEAR
+      </button>
+    </div>
 
-    <div class="grid grid-cols-2 gap-3">
-
+    <!-- Results -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">BMR</div>
         <div id="bmr" class="text-lg mt-1">—</div>
       </div>
-
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">TDEE</div>
         <div id="tdee" class="text-lg mt-1">—</div>
       </div>
-
     </div>
+
+    <!-- Macro Suggestions -->
+    <div class="border border-white p-3 mb-3">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="text-sm tracking-widest">SUGGESTED MACROS</div>
+          <div class="text-xs text-gray-400 mt-1">Uses your goal calories. Protein/fat are weight-based; carbs fill the rest.</div>
+        </div>
+        <button onclick="suggestMacros()"
+          class="border border-white px-3 py-2 hover:bg-white hover:text-black text-sm shrink-0">
+          SUGGEST
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mt-3">
+        <div class="border border-white p-3">
+          <div class="text-xs text-gray-400">PROTEIN</div>
+          <div id="macro_p" class="text-lg mt-1">—</div>
+          <div class="text-xs text-gray-500">g/day</div>
+        </div>
+        <div class="border border-white p-3">
+          <div class="text-xs text-gray-400">CARBS</div>
+          <div id="macro_c" class="text-lg mt-1">—</div>
+          <div class="text-xs text-gray-500">g/day</div>
+        </div>
+        <div class="border border-white p-3">
+          <div class="text-xs text-gray-400">FAT</div>
+          <div id="macro_f" class="text-lg mt-1">—</div>
+          <div class="text-xs text-gray-500">g/day</div>
+        </div>
+      </div>
+
+      <div class="border border-white p-3 mt-3">
+        <div class="text-xs text-gray-400">GOAL CALORIES USED</div>
+        <div id="goal_cals" class="text-lg mt-1">—</div>
+      </div>
+
+      <div class="text-xs text-gray-500 mt-2">
+        Rules: Protein = 0.9×lb, Fat = 0.35×lb, Carbs = remaining calories.
+      </div>
+    </div>
+
+    <!-- Back button lowered -->
+    <a href="/"
+       class="block w-full text-center border border-white py-2 hover:bg-white hover:text-black text-sm mt-6">
+      BACK TO MACRO MATRIX
+    </a>
 
   </div>
 
   <script>
-    function lbToKg(lb) {
-      return lb / 2.2046226218;
-    }
+    function lbToKg(lb) { return lb / 2.2046226218; }
+    function inchesToCm(inches) { return inches * 2.54; }
 
-    function inchesToCm(inches) {
-      return inches * 2.54;
-    }
-
-    function calculate() {
+    function readInputs() {
       const sex = document.getElementById("sex").value;
       const age = Number(document.getElementById("age").value);
       const ft = Number(document.getElementById("height_ft").value);
       const inch = Number(document.getElementById("height_in").value);
       const lb = Number(document.getElementById("weight_lb").value);
       const activity = Number(document.getElementById("activity").value);
+      const goalMult = Number(document.getElementById("goal").value);
 
-      if (!age || !ft || !lb) return;
+      if (!age || !ft || !lb) return null;
+      return { sex, age, ft, inch: (inch || 0), lb, activity, goalMult };
+    }
 
-      const totalInches = (ft * 12) + inch;
+    function computeBmrTdee(data) {
+      const totalInches = (data.ft * 12) + data.inch;
       const cm = inchesToCm(totalInches);
-      const kg = lbToKg(lb);
+      const kg = lbToKg(data.lb);
 
-      let bmr = (10 * kg) + (6.25 * cm) - (5 * age);
-      bmr = sex === "female" ? bmr - 161 : bmr + 5;
+      let bmr = (10 * kg) + (6.25 * cm) - (5 * data.age);
+      bmr = data.sex === "female" ? (bmr - 161) : (bmr + 5);
 
-      const tdee = bmr * activity;
+      const tdee = bmr * data.activity;
+      const goalCals = tdee * data.goalMult;
+
+      return { bmr, tdee, goalCals };
+    }
+
+    function calculateAll() {
+      const data = readInputs();
+      if (!data) return;
+
+      const { bmr, tdee } = computeBmrTdee(data);
+      document.getElementById("bmr").textContent = Math.round(bmr);
+      document.getElementById("tdee").textContent = Math.round(tdee);
+    }
+
+    function suggestMacros() {
+      const data = readInputs();
+      if (!data) return;
+
+      const { bmr, tdee, goalCals } = computeBmrTdee(data);
 
       document.getElementById("bmr").textContent = Math.round(bmr);
       document.getElementById("tdee").textContent = Math.round(tdee);
+      document.getElementById("goal_cals").textContent = Math.round(goalCals);
+
+      const proteinG = Math.round(0.9 * data.lb);
+      const fatG = Math.round(0.35 * data.lb);
+
+      const proteinCals = proteinG * 4;
+      const fatCals = fatG * 9;
+
+      const remaining = Math.max(0, goalCals - proteinCals - fatCals);
+      const carbsG = Math.round(remaining / 4);
+
+      document.getElementById("macro_p").textContent = proteinG;
+      document.getElementById("macro_f").textContent = fatG;
+      document.getElementById("macro_c").textContent = carbsG;
+    }
+
+    function clearAll() {
+      ["age","weight_lb","height_ft","height_in"].forEach(id => document.getElementById(id).value = "");
+      document.getElementById("sex").value = "male";
+      document.getElementById("activity").value = "1.55";
+      document.getElementById("goal").value = "1.0";
+
+      document.getElementById("bmr").textContent = "—";
+      document.getElementById("tdee").textContent = "—";
+      document.getElementById("macro_p").textContent = "—";
+      document.getElementById("macro_c").textContent = "—";
+      document.getElementById("macro_f").textContent = "—";
+      document.getElementById("goal_cals").textContent = "—";
     }
   </script>
 
