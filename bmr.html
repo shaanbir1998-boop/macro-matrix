@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>BMR / TDEE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-black text-white min-h-screen font-mono p-4">
+
+  <div class="max-w-md mx-auto border border-white p-4 min-h-screen">
+
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h1 class="text-xl tracking-widest">BMR / TDEE</h1>
+        <p class="text-gray-400 text-sm">
+          Basal metabolic rate and maintenance calories.
+        </p>
+      </div>
+
+      <a href="/"
+         class="border border-white px-3 py-1 hover:bg-white hover:text-black text-sm">
+        BACK
+      </a>
+    </div>
+
+    <div class="border border-white p-3 mb-4 text-sm text-gray-300">
+      <p><span class="text-white">BMR</span> = calories burned at rest.</p>
+      <p><span class="text-white">TDEE</span> = maintenance calories (BMR × activity).</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-4">
+
+      <div class="col-span-2">
+        <label class="text-sm">SEX</label>
+        <select id="sex"
+          class="w-full p-2 bg-black border border-white mt-1">
+          <option value="male">MALE</option>
+          <option value="female">FEMALE</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm">AGE</label>
+        <input id="age" type="number"
+          class="w-full p-2 bg-black border border-white mt-1"
+          inputmode="numeric">
+      </div>
+
+      <div>
+        <label class="text-sm">WEIGHT (LB)</label>
+        <input id="weight_lb" type="number"
+          class="w-full p-2 bg-black border border-white mt-1"
+          inputmode="decimal">
+      </div>
+
+      <div>
+        <label class="text-sm">HEIGHT (FT)</label>
+        <input id="height_ft" type="number"
+          class="w-full p-2 bg-black border border-white mt-1"
+          inputmode="numeric">
+      </div>
+
+      <div>
+        <label class="text-sm">HEIGHT (IN)</label>
+        <input id="height_in" type="number"
+          class="w-full p-2 bg-black border border-white mt-1"
+          inputmode="numeric">
+      </div>
+
+      <div class="col-span-2">
+        <label class="text-sm">ACTIVITY LEVEL</label>
+        <select id="activity"
+          class="w-full p-2 bg-black border border-white mt-1">
+          <option value="1.2">SEDENTARY — 1.2</option>
+          <option value="1.375">LIGHT — 1.375</option>
+          <option value="1.55" selected>MODERATE — 1.55</option>
+          <option value="1.725">VERY ACTIVE — 1.725</option>
+          <option value="1.9">EXTRA ACTIVE — 1.9</option>
+        </select>
+      </div>
+
+    </div>
+
+    <button onclick="calculate()"
+      class="w-full border border-white py-2 hover:bg-white hover:text-black mb-4">
+      CALCULATE
+    </button>
+
+    <div class="grid grid-cols-2 gap-3">
+
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">BMR</div>
+        <div id="bmr" class="text-lg mt-1">—</div>
+      </div>
+
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">TDEE</div>
+        <div id="tdee" class="text-lg mt-1">—</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function lbToKg(lb) {
+      return lb / 2.2046226218;
+    }
+
+    function inchesToCm(inches) {
+      return inches * 2.54;
+    }
+
+    function calculate() {
+      const sex = document.getElementById("sex").value;
+      const age = Number(document.getElementById("age").value);
+      const ft = Number(document.getElementById("height_ft").value);
+      const inch = Number(document.getElementById("height_in").value);
+      const lb = Number(document.getElementById("weight_lb").value);
+      const activity = Number(document.getElementById("activity").value);
+
+      if (!age || !ft || !lb) return;
+
+      const totalInches = (ft * 12) + inch;
+      const cm = inchesToCm(totalInches);
+      const kg = lbToKg(lb);
+
+      let bmr = (10 * kg) + (6.25 * cm) - (5 * age);
+      bmr = sex === "female" ? bmr - 161 : bmr + 5;
+
+      const tdee = bmr * activity;
+
+      document.getElementById("bmr").textContent = Math.round(bmr);
+      document.getElementById("tdee").textContent = Math.round(tdee);
+    }
+  </script>
+
+</body>
+</html>
