@@ -15,10 +15,10 @@
   <!-- Macro Matrix Rosy Future Theme -->
   <style>
     :root{
-      --mm-bg: #000000;
-      --mm-text: #E6E7E8;
-      --mm-title: #A7B0B8;
-      --mm-accent: #F27D9B;
+      --mm-bg: #000000;        /* Deepest Black */
+      --mm-text: #E6E7E8;      /* Stalactite */
+      --mm-title: #A7B0B8;     /* Secret Spaces */
+      --mm-accent: #F27D9B;    /* Rosy Future */
     }
 
     body{
@@ -26,11 +26,14 @@
       color: var(--mm-text) !important;
     }
 
+    /* Borders / lines */
     .border-white{ border-color: var(--mm-text) !important; }
     .border{ border-color: var(--mm-text) !important; }
 
+    /* Title */
     .mm-title{ color: var(--mm-title) !important; }
 
+    /* Inputs */
     input, select{
       background: transparent !important;
       color: var(--mm-text) !important;
@@ -42,6 +45,7 @@
       box-shadow: 0 0 0 2px rgba(242,125,155,0.25);
     }
 
+    /* Buttons / clickable */
     .mm-btn{
       background: var(--mm-accent) !important;
       color: var(--mm-text) !important;
@@ -51,32 +55,36 @@
     .mm-btn:hover{ opacity: 0.88; }
     .mm-btn:active{ transform: translateY(1px); }
 
+    /* Remove old Tailwind hover inversion if present */
     .hover\:bg-white:hover{ background: var(--mm-accent) !important; }
     .hover\:text-black:hover{ color: var(--mm-text) !important; }
 
+    /* Gray helper text -> Stalactite */
     .text-gray-400, .text-gray-500, .text-gray-300{
       color: var(--mm-text) !important;
       opacity: 0.9;
     }
   </style>
+
 </head>
 
 <body class="min-h-screen font-mono p-4">
 
   <div class="max-w-md mx-auto border border-white p-4 min-h-screen">
 
+    <!-- Header (back button moved lower per request) -->
     <div class="mb-4">
       <h1 class="text-xl tracking-widest mm-title">BMR / TDEE</h1>
       <p class="text-gray-400 text-sm">
         Estimate maintenance & macros.
       </p>
     </div>
-
+<!-- Inputs -->
     <div class="grid grid-cols-2 gap-3 mb-4">
 
       <div class="col-span-2">
         <label class="text-sm">SEX</label>
-        <select id="sex" class="w-full p-2 border border-white mt-1">
+        <select id="sex" class="w-full p-2  border border-white mt-1">
           <option value="male">MALE</option>
           <option value="female">FEMALE</option>
         </select>
@@ -85,34 +93,34 @@
       <div>
         <label class="text-sm">AGE</label>
         <input id="age" type="number" min="10" max="120"
-          class="w-full p-2 border border-white mt-1"
+          class="w-full p-2  border border-white mt-1"
           inputmode="numeric" placeholder="27">
       </div>
 
       <div>
         <label class="text-sm">WEIGHT (LB)</label>
         <input id="weight_lb" type="number" min="50" max="600"
-          class="w-full p-2 border border-white mt-1"
+          class="w-full p-2  border border-white mt-1"
           inputmode="decimal" placeholder="190">
       </div>
 
       <div>
         <label class="text-sm">HEIGHT (FT)</label>
         <input id="height_ft" type="number" min="3" max="8"
-          class="w-full p-2 border border-white mt-1"
+          class="w-full p-2  border border-white mt-1"
           inputmode="numeric" placeholder="5">
       </div>
 
       <div>
         <label class="text-sm">HEIGHT (IN)</label>
         <input id="height_in" type="number" min="0" max="11"
-          class="w-full p-2 border border-white mt-1"
+          class="w-full p-2  border border-white mt-1"
           inputmode="numeric" placeholder="9">
       </div>
 
       <div class="col-span-2">
         <label class="text-sm">ACTIVITY LEVEL</label>
-        <select id="activity" class="w-full p-2 border border-white mt-1">
+        <select id="activity" class="w-full p-2  border border-white mt-1">
           <option value="1.2">SEDENTARY</option>
           <option value="1.375">LIGHT</option>
           <option value="1.55" selected>MODERATE</option>
@@ -123,7 +131,7 @@
 
       <div class="col-span-2">
         <label class="text-sm">GOAL (APPLIES TO MACROS)</label>
-        <select id="goal" class="w-full p-2 border border-white mt-1">
+        <select id="goal" class="w-full p-2  border border-white mt-1">
           <option value="1.0" selected>MAINTAIN</option>
           <option value="0.90">CUT 10%</option>
           <option value="0.85">CUT 15%</option>
@@ -134,15 +142,19 @@
 
     </div>
 
+    <!-- Buttons -->
     <div class="grid grid-cols-2 gap-3 mb-4">
-      <button onclick="calculateAll()" class="w-full border border-white py-2 mm-btn rounded-lg">
+      <button onclick="calculateAll()"
+        class="w-full border border-white py-2 mm-btn rounded-lg">
         CALCULATE
       </button>
-      <button onclick="clearAll()" class="w-full border border-white py-2 mm-btn rounded-lg">
+      <button onclick="clearAll()"
+        class="w-full border border-white py-2 mm-btn rounded-lg">
         CLEAR
       </button>
     </div>
 
+    <!-- Results -->
     <div class="grid grid-cols-2 gap-3 mb-4">
       <div class="border border-white p-3">
         <div class="text-xs text-gray-400">BMR</div>
@@ -154,10 +166,12 @@
       </div>
     </div>
 
+    <!-- Macro Suggestions -->
     <div class="border border-white p-3 mb-3">
       <div class="flex items-center justify-between gap-3">
         <div>
           <div class="text-sm tracking-widest">SUGGESTED MACROS</div>
+          <div class="text-xs text-gray-400 mt-1"></div>
         </div>
         <button onclick="suggestMacros()" class="mm-btn border border-white px-3 py-2 text-sm shrink-0 rounded-lg">
           SUGGEST
@@ -186,8 +200,9 @@
         <div class="text-xs text-gray-400">GOAL CALORIES USED</div>
         <div id="goal_cals" class="text-lg mt-1">—</div>
       </div>
-    </div>
+</div>
 
+    <!-- Back button lowered -->
     <a href="/" class="block w-full text-center border border-white py-2 text-xl mt-6 mm-btn rounded-lg">
       ←
     </a>
