@@ -7,9 +7,16 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
+
 /* =========================
-   BACKGROUND (pixel art + dust)
+   BACKGROUND
 ========================= */
+body {
+  background: #000;
+  margin: 0;
+  overflow: hidden;
+}
+
 #bgArt {
   position: fixed;
   inset: 0;
@@ -17,7 +24,6 @@
   place-items: center;
   pointer-events: none;
   z-index: 0;
-  overflow: hidden;
 }
 
 /* Windows 98 crunchy stepped zoom */
@@ -27,78 +33,40 @@
   opacity: 0;
   image-rendering: pixelated;
   transform-origin: center;
-  filter: contrast(1.15) saturate(1.05);
-  animation: win98Zoom 10s steps(14, end) 2 forwards;
+  filter: contrast(1.2) saturate(1.05);
+  animation: win98Zoom 10s steps(14,end) 2 forwards;
 }
 
 @keyframes win98Zoom {
   0%   { opacity: 0;   transform: scale(0.35); }
   15%  { opacity: 0.7; transform: scale(0.75); }
-  30%  { opacity: 0.9; transform: scale(1.05); }
-  55%  { opacity: 0.9; transform: scale(1.1); }
+  30%  { opacity: 0.95; transform: scale(1.05); }
+  55%  { opacity: 0.95; transform: scale(1.1); }
   75%  { opacity: 0.4; transform: scale(0.85); }
   100% { opacity: 0;   transform: scale(0.4); }
 }
 
-/* Canvas */
-#dust {
-  position: absolute;
-  inset: 0;
-}
-
-/* Subtle CRT scanlines (Win98 monitor vibe) */
+/* =========================
+   CRT SCANLINES
+========================= */
 #scanlines {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 5;
-  opacity: 0.14;
+  opacity: 0.12;
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(255,255,255,0.03) 0px,
-      rgba(255,255,255,0.03) 1px,
-      rgba(0,0,0,0) 3px,
-      rgba(0,0,0,0) 6px
+      rgba(255,255,255,0.04) 0px,
+      rgba(255,255,255,0.04) 1px,
+      transparent 3px,
+      transparent 6px
     );
-  mix-blend-mode: overlay;
-  animation: scanShift 6s linear infinite;
-}
-
-@keyframes scanShift {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(18px); }
 }
 
 /* =========================
-   BOOT TEXT (typed + cursor + blink)
-========================= */
-#bootText {
-  position: fixed;
-  bottom: 14px;
-  left: 14px;
-  z-index: 30;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: #9ca3af;
-  user-select: none;
-  white-space: nowrap;
-}
-
-#cursor {
-  display: inline-block;
-  width: 8px;
-  margin-left: 2px;
-  animation: cursorBlink 1s steps(1,end) infinite;
-}
-
-@keyframes cursorBlink {
-  50% { opacity: 0; }
-}
-
-/* =========================
-   WIN98 WINDOW (beveled frame)
+   WIN98 WINDOW
 ========================= */
 .win98 {
   position: relative;
@@ -106,85 +74,112 @@
   width: min(560px, 100%);
   background: #000;
   color: #fff;
-  border: 2px solid #fff;
-  box-shadow: none;
+
+  /* Classic 90s bevel */
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #404040;
+  border-right: 2px solid #404040;
 }
 
 .win98-titlebar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
-  border-bottom: 2px solid #fff;
-}
-
-.win98-titlebar .title {
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 2px solid #404040;
   font-size: 12px;
   letter-spacing: 1px;
-  color: #e5e7eb;
 }
 
 .win98-controls {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 
 .win98-btn {
   width: 14px;
   height: 14px;
-  border: 1px solid #fff;
+  border-top: 1px solid #ffffff;
+  border-left: 1px solid #ffffff;
+  border-bottom: 1px solid #404040;
+  border-right: 1px solid #404040;
+  font-size: 9px;
   display: grid;
   place-items: center;
-  font-size: 10px;
-  line-height: 1;
-  color: #fff;
-  opacity: 0.9;
 }
 
 .win98-body {
-  padding: 18px;
+  padding: 16px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #bgArt img { animation: none; opacity: 0.4; transform: scale(1); }
-  #scanlines { animation: none; }
-  #cursor { animation: none; opacity: 1; }
+/* =========================
+   BOOT TEXT
+========================= */
+#bootText {
+  position: fixed;
+  bottom: 14px;
+  left: 14px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9ca3af;
+  font-family: monospace;
+  z-index: 30;
 }
+
+#cursor {
+  animation: blink 1s steps(1,end) infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+#audioHint {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  font-size: 10px;
+  color: #6b7280;
+  z-index: 30;
+}
+
 </style>
 </head>
 
-<body class="bg-black text-white min-h-screen font-mono flex items-center justify-center p-6">
+<body class="text-white min-h-screen font-mono flex items-center justify-center p-6">
 
-<!-- Pixel Art Background -->
+<!-- Pixel Background -->
 <div id="bgArt">
   <canvas id="dust"></canvas>
-  <img id="meal" src="/mcdonalds-pixel.jpg" alt="" aria-hidden="true">
+  <img src="/mcdonalds-pixel.jpg" alt="">
 </div>
 
-<!-- CRT Scanlines -->
-<div id="scanlines" aria-hidden="true"></div>
+<div id="scanlines"></div>
 
 <!-- Boot Text -->
 <div id="bootText">
   <span id="bootLine"></span><span id="cursor">█</span>
 </div>
 
-<!-- Win98-style Window -->
+<div id="audioHint">CLICK ANYWHERE FOR SOUND</div>
+
+<!-- Window -->
 <div class="win98">
   <div class="win98-titlebar">
-    <div class="title">MACRO MATRIX INSTALLER</div>
-    <div class="win98-controls" aria-hidden="true">
+    <div>MACRO MATRIX INSTALLER</div>
+    <div class="win98-controls">
       <div class="win98-btn">_</div>
       <div class="win98-btn">□</div>
       <div class="win98-btn">×</div>
     </div>
   </div>
 
-  <div class="win98-body space-y-5">
-    <h1 class="text-xl tracking-widest text-center">INSTALL MACRO MATRIX</h1>
+  <div class="win98-body space-y-4">
+    <h1 class="text-lg tracking-widest text-center">INSTALL MACRO MATRIX</h1>
 
     <p class="text-gray-400 text-center text-sm">
-      iPhone setup (Safari only).
+      iPhone setup (Safari only)
     </p>
 
     <ol class="list-decimal ml-5 text-gray-300 text-sm space-y-1">
@@ -195,8 +190,8 @@
     </ol>
 
     <div class="text-center pt-2">
-      <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition inline-block">
-        ← Back to Macro Matrix
+      <a href="/" class="border border-white px-5 py-2 hover:bg-white hover:text-black transition inline-block">
+        ← Back
       </a>
     </div>
   </div>
@@ -204,12 +199,12 @@
 
 <script>
 /* =========================
-   PIXEL DUST (same style, slightly chaotic)
+   PIXEL DUST
 ========================= */
 const canvas = document.getElementById("dust");
 const ctx = canvas.getContext("2d");
-let W, H;
 
+let W, H;
 function resize() {
   W = canvas.width = window.innerWidth;
   H = canvas.height = window.innerHeight;
@@ -217,88 +212,108 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-const colors = ["#facc15", "#ef4444", "#22c55e", "#ffffff"];
+const colors = ["#facc15","#ef4444","#22c55e","#ffffff"];
 const particles = [];
-const MAX = 190;
+const MAX = 200;
 
-function spawn(burst = false) {
-  if (particles.length > MAX) return;
-  const size = Math.random() > 0.6 ? 3 : 2;
-
+function spawn(burst=false){
+  if(particles.length > MAX) return;
+  const size = Math.random()>0.6?3:2;
   particles.push({
-    x: W/2 + (Math.random() - 0.5) * 340,
-    y: H/2 + (Math.random() - 0.5) * 240,
-    vx: (Math.random() - 0.5) * (burst ? 1.4 : 0.8),
-    vy: -Math.random() * (burst ? 1.8 : 1.2) - 0.2,
-    wobble: Math.random() * 0.05,
-    wobbleOffset: Math.random() * 1000,
+    x: W/2+(Math.random()-0.5)*350,
+    y: H/2+(Math.random()-0.5)*250,
+    vx:(Math.random()-0.5)*(burst?1.6:0.9),
+    vy:-Math.random()*(burst?2:1.2)-0.2,
+    wobble:Math.random()*0.05,
+    wobbleOffset:Math.random()*1000,
     size,
-    life: 90 + Math.random() * 120,
-    color: colors[Math.floor(Math.random() * colors.length)]
+    life:80+Math.random()*120,
+    color:colors[Math.floor(Math.random()*colors.length)]
   });
 }
 
-let frame = 0;
-function updateDust() {
-  ctx.clearRect(0, 0, W, H);
+let frame=0;
+function updateDust(){
+  ctx.clearRect(0,0,W,H);
   frame++;
-
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx + Math.sin(frame * p.wobble + p.wobbleOffset) * 0.6;
-    p.y += p.vy;
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx+Math.sin(frame*p.wobble+p.wobbleOffset)*0.6;
+    p.y+=p.vy;
     p.life--;
-
-    ctx.fillStyle = p.color;
-    ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
-
-    if (p.life <= 0) particles.splice(i, 1);
+    ctx.fillStyle=p.color;
+    ctx.fillRect(Math.round(p.x),Math.round(p.y),p.size,p.size);
+    if(p.life<=0) particles.splice(i,1);
   }
-
-  spawn();
-  spawn();
-  if (Math.random() > 0.92) for (let i = 0; i < 6; i++) spawn(true);
-
+  spawn(); spawn();
+  if(Math.random()>0.92) for(let i=0;i<6;i++) spawn(true);
   requestAnimationFrame(updateDust);
 }
 updateDust();
 
 /* =========================
-   BOOT TEXT (typewriter + status swap)
+   TYPING SOUND
 ========================= */
-const bootLineEl = document.getElementById("bootLine");
+let audioCtx=null;
+let soundEnabled=false;
 
-const lines = [
+function initAudio(){
+  if(soundEnabled) return;
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  soundEnabled=true;
+  document.getElementById("audioHint").style.display="none";
+}
+
+function clickSound(){
+  if(!soundEnabled) return;
+  const now=audioCtx.currentTime;
+  const osc=audioCtx.createOscillator();
+  const gain=audioCtx.createGain();
+  osc.type="square";
+  osc.frequency.setValueAtTime(900+Math.random()*200,now);
+  gain.gain.setValueAtTime(0.05,now);
+  gain.gain.exponentialRampToValueAtTime(0.001,now+0.04);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now+0.04);
+}
+
+window.addEventListener("pointerdown",initAudio,{once:true});
+window.addEventListener("keydown",initAudio,{once:true});
+
+/* =========================
+   BOOT TEXT
+========================= */
+const bootLineEl=document.getElementById("bootLine");
+const lines=[
   "SYSTEM INITIALIZING...",
   "LOADING MACRO MODULES...",
   "CALIBRATING TARGETS...",
   "READY."
 ];
 
-let lineIndex = 0;
-let charIndex = 0;
+let lineIndex=0;
+let charIndex=0;
 
-function typeNext() {
-  const current = lines[lineIndex];
-
-  // typing
-  if (charIndex <= current.length) {
-    bootLineEl.textContent = current.slice(0, charIndex);
+function typeNext(){
+  const current=lines[lineIndex];
+  if(charIndex<=current.length){
+    bootLineEl.textContent=current.slice(0,charIndex);
+    if(current[charIndex-1] && Math.random()>0.2) clickSound();
     charIndex++;
-    setTimeout(typeNext, 45 + Math.random() * 35);
+    setTimeout(typeNext,45+Math.random()*35);
     return;
   }
-
-  // pause after full line
-  setTimeout(() => {
-    lineIndex = Math.min(lineIndex + 1, lines.length - 1);
-    charIndex = 0;
-    bootLineEl.textContent = "";
+  setTimeout(()=>{
+    lineIndex=Math.min(lineIndex+1,lines.length-1);
+    charIndex=0;
+    bootLineEl.textContent="";
     typeNext();
-  }, lineIndex === lines.length - 1 ? 999999 : 700);
+  }, lineIndex===lines.length-1?999999:700);
 }
-
 typeNext();
+
 </script>
 
 </body>
