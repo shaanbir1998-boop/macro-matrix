@@ -18,7 +18,7 @@
   overflow: hidden;
 }
 
-/* Windows 98 crunchy stepped zoom */
+/* Windows 98 stepped zoom */
 #bgArt img {
   width: min(620px, 92vw);
   height: auto;
@@ -29,7 +29,6 @@
   animation: win98Zoom 10s steps(14, end) 2 forwards;
 }
 
-/* Stepped appear → zoom → disappear */
 @keyframes win98Zoom {
   0%   { opacity: 0;   transform: scale(0.35); }
   15%  { opacity: 0.7; transform: scale(0.75); }
@@ -43,6 +42,23 @@
 #dust {
   position: absolute;
   inset: 0;
+}
+
+/* Boot text */
+#bootText {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9ca3af;
+  font-family: monospace;
+  animation: blink 1.2s steps(1,end) infinite;
+  z-index: 20;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -61,6 +77,9 @@
   <canvas id="dust"></canvas>
   <img id="meal" src="/mcdonalds-pixel.jpg" alt="">
 </div>
+
+<!-- Boot text -->
+<div id="bootText">SYSTEM INITIALIZING...</div>
 
 <div class="relative z-10 max-w-xl w-full border border-white p-8 space-y-6">
 
@@ -100,14 +119,7 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-/* Same retro palette */
-const colors = [
-  "#facc15",  // fries yellow
-  "#ef4444",  // red
-  "#22c55e",  // green
-  "#ffffff"
-];
-
+const colors = ["#facc15", "#ef4444", "#22c55e", "#ffffff"];
 const particles = [];
 const MAX = 190;
 
@@ -119,14 +131,10 @@ function spawn(burst = false) {
   particles.push({
     x: W/2 + (Math.random() - 0.5) * 340,
     y: H/2 + (Math.random() - 0.5) * 240,
-
-    // more chaotic velocity but same particle style
     vx: (Math.random() - 0.5) * (burst ? 1.4 : 0.8),
     vy: -Math.random() * (burst ? 1.8 : 1.2) - 0.2,
-
     wobble: Math.random() * 0.05,
     wobbleOffset: Math.random() * 1000,
-
     size: size,
     life: 90 + Math.random() * 120,
     color: colors[Math.floor(Math.random()*colors.length)]
@@ -137,13 +145,11 @@ let frame = 0;
 
 function update() {
   ctx.clearRect(0, 0, W, H);
-
   frame++;
 
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
 
-    // horizontal wobble = subtle chaos
     p.x += p.vx + Math.sin(frame * p.wobble + p.wobbleOffset) * 0.6;
     p.y += p.vy;
     p.life--;
@@ -154,11 +160,9 @@ function update() {
     if (p.life <= 0) particles.splice(i, 1);
   }
 
-  // steady spawn
   spawn();
   spawn();
 
-  // occasional micro burst
   if (Math.random() > 0.92) {
     for (let i = 0; i < 6; i++) spawn(true);
   }
@@ -167,6 +171,11 @@ function update() {
 }
 
 update();
+
+/* Stop boot text after animation completes (20s) */
+setTimeout(() => {
+  document.getElementById("bootText").textContent = "SYSTEM READY";
+}, 20000);
 </script>
 
 </body>
