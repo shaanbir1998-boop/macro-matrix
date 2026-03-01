@@ -51,6 +51,14 @@
     }
 
     /* Inputs */
+    /* Prevent select text from resizing layout (long meal names) */
+    select{
+      min-width: 0;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
     input, select{
       background: transparent !important;
       color: var(--mm-stalactite) !important;
@@ -145,21 +153,21 @@
   </button>
 </div>
 
-    <!-- Load Meal -->
-<div class="flex gap-2 mb-3">
+    <!-- Load Meal (fixed height + no layout shift) -->
+<div class="flex items-center gap-2 mb-3 h-11">
   <select id="mealSelect"
-          class="p-2  border border-white flex-1">
+          class="flex-1 px-2 h-8 text-sm border border-white min-w-0">
     <option value="">LOAD MEAL</option>
   </select>
 
   <button id="loadMealBtn"
-          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg mm-btn">
-    LOAD
+          class="mm-btn w-8 h-8 flex items-center justify-center rounded-md text-xs">
+    
   </button>
 
   <button id="deleteMealBtn"
-          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg mm-btn">
-    DELETE
+          class="mm-btn w-8 h-8 flex items-center justify-center rounded-md text-xs">
+    
   </button>
 </div>
 
@@ -362,28 +370,41 @@ function saveMeal() {
 function loadMeal() {
 
   const index = mealSelect.value;
-
   if (index === "") return;
+
+  // Keep the screen from jumping when the table height changes
+  const y = window.scrollY;
 
   ingredients = [...meals[index].ingredients];
 
   update();
+
+  // iOS/Safari sometimes scrolls on select interactions—force back
+  mealSelect.blur();
+  requestAnimationFrame(() => window.scrollTo({ top: y }));
 
 }
 
 function deleteMeal() {
 
   const index = mealSelect.value;
-
   if (index === "") return;
 
   if (!confirm("Delete this meal?")) return;
+
+  const y = window.scrollY;
 
   meals.splice(index, 1);
 
   localStorage.setItem("meals", JSON.stringify(meals));
 
   populateMealDropdown();
+
+  // Clear selection so the select height/text doesn't change after deletion
+  mealSelect.value = "";
+  mealSelect.blur();
+
+  requestAnimationFrame(() => window.scrollTo({ top: y }));
 
 }
   
