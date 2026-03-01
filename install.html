@@ -7,130 +7,280 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* Background container */
+    /* ---------- Background stack ---------- */
     #bgArt {
       position: fixed;
       inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       pointer-events: none;
       z-index: 0;
       overflow: hidden;
     }
 
-    /* Pixel burger */
-    #bgArt img {
-      width: min(600px, 90vw);
-      height: auto;
-      opacity: 0.4;
-      image-rendering: pixelated;
-      animation: vanish 8s linear infinite;
-      transform-origin: bottom center;
-    }
-
-    /* Disappearing animation */
-    @keyframes vanish {
-      0% {
-        opacity: 0.4;
-        clip-path: inset(0 0 0 0);
-      }
-      70% {
-        opacity: 0.25;
-        clip-path: inset(0 0 60% 0);
-      }
-      100% {
-        opacity: 0;
-        clip-path: inset(0 0 100% 0);
-      }
-    }
-
-    /* Pixel dust container */
-    .dust {
+    /* Center the pixel art image */
+    #bgArt .bgCenter {
       position: absolute;
-      bottom: 0;
-      width: 6px;
-      height: 6px;
-      background: #facc15; /* yellow pixel */
-      opacity: 0;
-      animation: floatUp linear infinite;
+      inset: 0;
+      display: grid;
+      place-items: center;
     }
 
-    /* Floating animation */
-    @keyframes floatUp {
-      0% {
-        transform: translateY(0);
-        opacity: 0;
-      }
-      15% {
-        opacity: 0.6;
-      }
-      100% {
-        transform: translateY(-600px);
-        opacity: 0;
-      }
+    #bgArt img {
+      width: min(620px, 92vw);
+      height: auto;
+      opacity: 0.46;
+      image-rendering: pixelated;
+      transform-origin: bottom center;
+      /* Only two disappear cycles, then it holds on invisible */
+      animation: vanish 8s linear 2 forwards, glitchFlicker 3.4s steps(1, end) infinite;
+      filter: saturate(1.1) contrast(1.05);
+      will-change: transform, opacity, filter, clip-path;
+    }
+
+    /* Disappearing bottom -> top */
+    @keyframes vanish {
+      0%   { opacity: 0.46; clip-path: inset(0 0 0 0); }
+      70%  { opacity: 0.28; clip-path: inset(0 0 60% 0); }
+      100% { opacity: 0;    clip-path: inset(0 0 100% 0); }
+    }
+
+    /* Glitch flicker (kept subtle) */
+    @keyframes glitchFlicker {
+      0%, 85%, 100% { transform: translate(0,0) scale(1); filter: saturate(1.1) contrast(1.05); }
+      86% { transform: translate(-2px, 1px) scale(1.01); filter: saturate(1.35) contrast(1.2) hue-rotate(8deg); }
+      88% { transform: translate(3px, -1px) scale(1.01); filter: saturate(1.25) contrast(1.35) hue-rotate(-10deg); }
+      90% { transform: translate(-1px, 0px) scale(1.00); filter: saturate(1.1) contrast(1.05); }
+      94% { transform: translate(2px, 2px) scale(1.02); filter: saturate(1.4) contrast(1.25) hue-rotate(14deg); }
+      95% { transform: translate(0,0) scale(1.00); filter: saturate(1.1) contrast(1.05); }
+    }
+
+    /* Optional scanlines (very light) */
+    #bgArt::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,0.03) 0px,
+          rgba(255,255,255,0.03) 1px,
+          rgba(0,0,0,0) 3px,
+          rgba(0,0,0,0) 6px
+        );
+      mix-blend-mode: overlay;
+      opacity: 0.14;
+      animation: scanShift 6s linear infinite;
+    }
+
+    @keyframes scanShift {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(18px); }
+    }
+
+    /* Canvas for real particle system */
+    #dustCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 1;
+    }
+
+    /* Foreground card stays transparent */
+    .card {
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      #bgArt img { animation: none !important; }
+      #bgArt::before { animation: none !important; }
     }
   </style>
 </head>
 
 <body class="bg-black text-white min-h-screen font-mono flex items-center justify-center p-6">
 
-  <!-- Pixel Background -->
+  <!-- Background -->
   <div id="bgArt">
-    <img src="/mcdonalds-pixel.jpg" alt="" />
+    <canvas id="dustCanvas"></canvas>
 
-    <!-- Pixel Dust Particles -->
-    <div class="dust" style="left: 45%; animation-duration: 6s;"></div>
-    <div class="dust" style="left: 52%; animation-duration: 7s;"></div>
-    <div class="dust" style="left: 48%; animation-duration: 5.5s;"></div>
-    <div class="dust" style="left: 55%; animation-duration: 8s;"></div>
-    <div class="dust" style="left: 50%; animation-duration: 6.5s;"></div>
-    <div class="dust" style="left: 53%; animation-duration: 7.2s;"></div>
-    <div class="dust" style="left: 47%; animation-duration: 6.8s;"></div>
-    <div class="dust" style="left: 58%; animation-duration: 7.8s;"></div>
+    <div class="bgCenter">
+      <!-- ✅ Keep your filename -->
+      <img id="mealImg" src="/mcdonalds-pixel.jpg" alt="" aria-hidden="true" />
+    </div>
   </div>
 
-  <!-- Content -->
-  <div class="max-w-xl w-full border border-white p-8 space-y-6 relative z-10">
-
-    <h1 class="text-2xl tracking-widest text-center">
-      INSTALL MACRO MATRIX
-    </h1>
+  <!-- Foreground content (reduced text: Safari only) -->
+  <div class="card max-w-xl w-full border border-white p-8 space-y-6">
+    <h1 class="text-2xl tracking-widest text-center">INSTALL MACRO MATRIX</h1>
 
     <p class="text-gray-400 text-center">
-      Turn Macro Matrix into a full-screen iPhone app.
+      iPhone setup (Safari only).
     </p>
 
-    <div class="space-y-4 text-sm">
-
-      <div>
-        <h2 class="text-white font-bold">On iPhone (Safari only):</h2>
-        <ol class="list-decimal ml-5 space-y-1 text-gray-300">
-          <li>Open the website in Safari</li>
-          <li>Tap the Share icon</li>
-          <li>Select <strong>Add to Home Screen</strong></li>
-          <li>Tap Add</li>
-        </ol>
-      </div>
-
-      <div>
-        <h2 class="text-white font-bold">On Desktop (Chrome):</h2>
-        <ol class="list-decimal ml-5 space-y-1 text-gray-300">
-          <li>Open the website</li>
-          <li>Click the install icon in the address bar</li>
-          <li>Click Install</li>
-        </ol>
-      </div>
-
+    <div class="text-sm">
+      <ol class="list-decimal ml-5 space-y-1 text-gray-300">
+        <li>Open Macro Matrix in Safari</li>
+        <li>Tap the Share icon</li>
+        <li>Select <strong>Add to Home Screen</strong></li>
+        <li>Tap Add</li>
+      </ol>
+      <p class="text-xs text-gray-500 mt-3">
+        If you’re in an in-app browser (Instagram, etc.), tap “Open in Safari”.
+      </p>
     </div>
 
-    <div class="text-center pt-4">
+    <div class="text-center pt-2">
       <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition">
         ← Back to Macro Matrix
       </a>
     </div>
-
   </div>
 
+  <script>
+    // ========= Real Pixel Particle System (Canvas) =========
+    // Spawns pixel dust from the image area. Runs mainly while the image is visible.
+    (function () {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const canvas = document.getElementById('dustCanvas');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      const img = document.getElementById('mealImg');
+
+      // Palette for pixel dust
+      const PALETTE = [
+        [250, 204, 21],   // fries yellow
+        [239, 68, 68],    // red
+        [220, 38, 38],    // deep red
+        [34, 197, 94],    // green
+        [249, 115, 22],   // orange
+        [255, 255, 255],  // white
+      ];
+
+      let W = 0, H = 0, DPR = 1;
+      function resize() {
+        DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+        W = canvas.clientWidth = window.innerWidth;
+        H = canvas.clientHeight = window.innerHeight;
+        canvas.width = W * DPR;
+        canvas.height = H * DPR;
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      // Particle store
+      const particles = [];
+      const MAX = 220;
+
+      function rand(min, max) { return Math.random() * (max - min) + min; }
+      function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+
+      function getImageRect() {
+        const r = img.getBoundingClientRect();
+        return { x: r.left, y: r.top, w: r.width, h: r.height };
+      }
+
+      function spawn(n = 6) {
+        const r = getImageRect();
+        // If rect is not meaningful yet, bail
+        if (!r.w || !r.h) return;
+
+        for (let i = 0; i < n; i++) {
+          if (particles.length >= MAX) break;
+
+          const color = pick(PALETTE);
+          const size = pick([2, 3, 4, 5]);
+          const x = rand(r.x + r.w * 0.18, r.x + r.w * 0.82);
+          const y = rand(r.y + r.h * 0.45, r.y + r.h * 0.95);
+
+          particles.push({
+            x, y,
+            vx: rand(-0.18, 0.18),
+            vy: rand(-0.95, -0.45),
+            life: rand(900, 1900),
+            age: 0,
+            size,
+            r: color[0], g: color[1], b: color[2],
+            a: rand(0.22, 0.65),
+            drift: rand(0.6, 1.6)
+          });
+        }
+      }
+
+      // During glitches, add bursts (but only while image is still doing its 2 cycles)
+      function glitchBurst() {
+        spawn(14);
+      }
+
+      // The image vanish runs 8s and repeats 2 times => total 16s
+      const VANISH_TOTAL_MS = 16000;
+
+      let start = performance.now();
+      let lastT = start;
+
+      // Schedule glitch bursts roughly aligned with the CSS flicker cadence
+      let glitchInterval = null;
+      function startGlitchBursts() {
+        glitchInterval = window.setInterval(() => {
+          const elapsed = performance.now() - start;
+          if (elapsed <= VANISH_TOTAL_MS && !prefersReduced) glitchBurst();
+          else if (glitchInterval) clearInterval(glitchInterval);
+        }, 3400);
+      }
+      startGlitchBursts();
+
+      function step(t) {
+        const dt = Math.min(40, t - lastT);
+        lastT = t;
+
+        ctx.clearRect(0, 0, W, H);
+
+        const elapsed = t - start;
+        const active = elapsed <= VANISH_TOTAL_MS; // only spawn while image is still doing 2 vanish loops
+
+        if (!prefersReduced && active) {
+          // Sync spawn rate to the 8s vanish phase, for nicer timing
+          const phase = (elapsed % 8000) / 8000; // 0..1
+          const base = 2;
+          const extra = phase < 0.72 ? 3 : 1;
+          spawn(base + extra);
+        }
+
+        // draw particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.age += dt;
+
+          p.x += p.vx * dt * p.drift + Math.sin((t + i * 13) * 0.006) * 0.08;
+          p.y += p.vy * dt * p.drift;
+
+          const k = p.age / p.life;
+          let alpha = p.a;
+          if (k < 0.12) alpha *= (k / 0.12);
+          else if (k > 0.72) alpha *= (1 - (k - 0.72) / 0.28);
+
+          const px = Math.round(p.x);
+          const py = Math.round(p.y);
+
+          ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${Math.max(0, alpha)})`;
+          ctx.fillRect(px, py, p.size, p.size);
+
+          if (p.age >= p.life || p.y < -20 || p.x < -40 || p.x > W + 40) {
+            particles.splice(i, 1);
+          }
+        }
+
+        requestAnimationFrame(step);
+      }
+
+      img.addEventListener('load', () => {
+        if (!prefersReduced) spawn(26);
+      });
+
+      requestAnimationFrame(step);
+    })();
+  </script>
 </body>
 </html>
