@@ -24,26 +24,43 @@
       place-items: center;
     }
 
+    /* ✅ Zoom in/out + fade in/out (2 cycles then stop) + glitch flicker */
     #bgArt img {
       width: min(620px, 92vw);
       height: auto;
-      opacity: 0.46;
+      opacity: 0;
       image-rendering: pixelated;
-      transform-origin: bottom center;
-      /* Only two disappear cycles, then it holds on invisible */
-      animation: vanish 8s linear 2 forwards, glitchFlicker 3.4s steps(1, end) infinite;
+      transform-origin: center;
+      animation: zoomPulse 8s ease-in-out 2 forwards, glitchFlicker 3.4s steps(1,end) infinite;
       filter: saturate(1.1) contrast(1.05);
-      will-change: transform, opacity, filter, clip-path;
+      will-change: transform, opacity, filter;
     }
 
-    /* Disappearing bottom -> top */
-    @keyframes vanish {
-      0%   { opacity: 0.46; clip-path: inset(0 0 0 0); }
-      70%  { opacity: 0.28; clip-path: inset(0 0 60% 0); }
-      100% { opacity: 0;    clip-path: inset(0 0 100% 0); }
+    /* Zoom in → hold → zoom out while fading */
+    @keyframes zoomPulse {
+      0% {
+        opacity: 0;
+        transform: scale(0.7);
+      }
+      15% {
+        opacity: 0.6;
+        transform: scale(1);
+      }
+      45% {
+        opacity: 0.6;
+        transform: scale(1.05);
+      }
+      70% {
+        opacity: 0.3;
+        transform: scale(0.85);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.6);
+      }
     }
 
-    /* Glitch flicker (kept subtle) */
+    /* Glitch flicker */
     @keyframes glitchFlicker {
       0%, 85%, 100% { transform: translate(0,0) scale(1); filter: saturate(1.1) contrast(1.05); }
       86% { transform: translate(-2px, 1px) scale(1.01); filter: saturate(1.35) contrast(1.2) hue-rotate(8deg); }
@@ -93,7 +110,7 @@
 
     /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce) {
-      #bgArt img { animation: none !important; }
+      #bgArt img { animation: none !important; opacity: 0.35; transform: scale(1); }
       #bgArt::before { animation: none !important; }
     }
   </style>
@@ -111,7 +128,7 @@
     </div>
   </div>
 
-  <!-- Foreground content (reduced text: Safari only) -->
+  <!-- Foreground content (Safari only / reduced text) -->
   <div class="card max-w-xl w-full border border-white p-8 space-y-6">
     <h1 class="text-2xl tracking-widest text-center">INSTALL MACRO MATRIX</h1>
 
@@ -140,7 +157,7 @@
 
   <script>
     // ========= Real Pixel Particle System (Canvas) =========
-    // Spawns pixel dust from the image area. Runs mainly while the image is visible.
+    // Spawns pixel dust from the image area. Runs only for the duration of the 2 zoom cycles (16s).
     (function () {
       const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -148,7 +165,6 @@
       const ctx = canvas.getContext('2d', { alpha: true });
       const img = document.getElementById('mealImg');
 
-      // Palette for pixel dust
       const PALETTE = [
         [250, 204, 21],   // fries yellow
         [239, 68, 68],    // red
@@ -170,7 +186,6 @@
       resize();
       window.addEventListener('resize', resize);
 
-      // Particle store
       const particles = [];
       const MAX = 220;
 
@@ -184,7 +199,6 @@
 
       function spawn(n = 6) {
         const r = getImageRect();
-        // If rect is not meaningful yet, bail
         if (!r.w || !r.h) return;
 
         for (let i = 0; i < n; i++) {
@@ -209,27 +223,22 @@
         }
       }
 
-      // During glitches, add bursts (but only while image is still doing its 2 cycles)
       function glitchBurst() {
         spawn(14);
       }
 
-      // The image vanish runs 8s and repeats 2 times => total 16s
-      const VANISH_TOTAL_MS = 16000;
+      // zoomPulse is 8s and repeats 2 times => total 16s
+      const TOTAL_MS = 16000;
 
-      let start = performance.now();
+      const start = performance.now();
       let lastT = start;
 
-      // Schedule glitch bursts roughly aligned with the CSS flicker cadence
-      let glitchInterval = null;
-      function startGlitchBursts() {
-        glitchInterval = window.setInterval(() => {
-          const elapsed = performance.now() - start;
-          if (elapsed <= VANISH_TOTAL_MS && !prefersReduced) glitchBurst();
-          else if (glitchInterval) clearInterval(glitchInterval);
-        }, 3400);
-      }
-      startGlitchBursts();
+      // Glitch burst cadence aligned to glitchFlicker duration
+      const glitchInterval = window.setInterval(() => {
+        const elapsed = performance.now() - start;
+        if (elapsed <= TOTAL_MS && !prefersReduced) glitchBurst();
+        else clearInterval(glitchInterval);
+      }, 3400);
 
       function step(t) {
         const dt = Math.min(40, t - lastT);
@@ -238,17 +247,19 @@
         ctx.clearRect(0, 0, W, H);
 
         const elapsed = t - start;
-        const active = elapsed <= VANISH_TOTAL_MS; // only spawn while image is still doing 2 vanish loops
+        const active = elapsed <= TOTAL_MS;
 
         if (!prefersReduced && active) {
-          // Sync spawn rate to the 8s vanish phase, for nicer timing
+          // Sync spawn to 8s phase for nicer timing
           const phase = (elapsed % 8000) / 8000; // 0..1
           const base = 2;
-          const extra = phase < 0.72 ? 3 : 1;
-          spawn(base + extra);
+
+          // More particles near peak visibility (around 15% -> 60% of the cycle)
+          const intensity = (phase > 0.10 && phase < 0.65) ? 4 : 2;
+          spawn(base + intensity);
         }
 
-        // draw particles
+        // Draw particles
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i];
           p.age += dt;
@@ -276,7 +287,7 @@
       }
 
       img.addEventListener('load', () => {
-        if (!prefersReduced) spawn(26);
+        if (!prefersReduced) spawn(28);
       });
 
       requestAnimationFrame(step);
