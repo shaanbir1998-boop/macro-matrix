@@ -5,30 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"> 
   <meta name="apple-mobile-web-app-capable" content="yes"> 
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Macro Matrix">
   <title>Macro Matrix Calculator</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="/manifest.webmanifest">
+
   <!-- iPhone/iPad Home Screen icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <script src="https://cdn.tailwindcss.com">
-// RESET BUTTON (clears ingredients + targets, keeps saved meals)
-const resetBtn = document.getElementById("resetBtn");
-
-resetBtn.addEventListener("click", () => {
-  if (!confirm("Reset all current data (ingredients and targets)? Saved meals will remain.")) return;
-
-  ingredients = [];
-  targets = { protein: 0, carbs: 0, fat: 0 };
-
-  targetProteinInput.value = "";
-  targetCarbsInput.value = "";
-  targetFatInput.value = "";
-
-  localStorage.setItem("ingredients", JSON.stringify(ingredients));
-  localStorage.setItem("targets", JSON.stringify(targets));
-
-  update();
-});
-
-</script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Macro Matrix Pantone Palette Theme (User Mapping) -->
   <style>
@@ -166,12 +150,12 @@ resetBtn.addEventListener("click", () => {
   </select>
 
   <button id="loadMealBtn"
-          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg mm-btn"
+          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg mm-btn">
     LOAD
   </button>
 
   <button id="deleteMealBtn"
-          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg mm-btn"
+          class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg mm-btn">
     DELETE
   </button>
 </div>
@@ -553,6 +537,14 @@ resetBtn.addEventListener("click", () => {
   update();
 });
 
+</script>
+<script>
+  // PWA: register the service worker (Step 4)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").catch(console.error);
+    });
+  }
 </script>
 </body>
 </html>
