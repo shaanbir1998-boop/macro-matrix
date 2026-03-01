@@ -1,203 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"> 
-  <meta name="apple-mobile-web-app-capable" content="yes"> 
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Macro Matrix Calculator</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <script src="https://cdn.tailwindcss.com"></script>
+<title>Macro Matrix Calculator</title>
 
-  <style>
-    :root{
-      --mm-silhouette: #000000;
-      --mm-stalactite: #E6E7E8;
-      --mm-secret:     #A7B0B8;
-      --mm-bluebird:   #F27D9B;
-    }
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<script src="https://cdn.tailwindcss.com"></script>
 
-    body{
-      background: var(--mm-silhouette) !important;
-      color: var(--mm-stalactite) !important;
-    }
-
-    .border-white{ border-color: var(--mm-stalactite) !important; }
-    .border{ border-color: var(--mm-stalactite) !important; }
-
-    .text-gray-400, .text-gray-500, .text-gray-300{
-      color: var(--mm-stalactite) !important;
-      opacity: 0.9;
-    }
-
-    #mmTitle{ color: var(--mm-secret) !important; }
-
-    input, select{
-      background: transparent !important;
-      color: var(--mm-stalactite) !important;
-      border: 1px solid var(--mm-stalactite) !important;
-    }
-
-    input::placeholder{
-      color: rgba(230,231,232,0.65);
-    }
-
-    input:focus, select:focus{
-      outline: none;
-      box-shadow: 0 0 0 2px rgba(230,231,232,0.25);
-    }
-
-    .mm-btn{
-      background: var(--mm-bluebird) !important;
-      color: var(--mm-stalactite) !important;
-      border-color: var(--mm-bluebird) !important;
-      transition: opacity 0.15s ease, transform 0.12s ease;
-    }
-
-    .mm-btn:hover{ opacity: 0.88; }
-    .mm-btn:active{ transform: translateY(1px); }
-
-    a{ color: var(--mm-stalactite) !important; }
-  </style>
+<style>
+:root{
+  --mm-silhouette:#000000;
+  --mm-stalactite:#E6E7E8;
+  --mm-secret:#A7B0B8;
+  --mm-bluebird:#F27D9B;
+}
+body{
+  background:var(--mm-silhouette)!important;
+  color:var(--mm-stalactite)!important;
+}
+.border,.border-white{border-color:var(--mm-stalactite)!important;}
+.text-gray-400,.text-gray-500,.text-gray-300{
+  color:var(--mm-stalactite)!important;opacity:.9;
+}
+#mmTitle{color:var(--mm-secret)!important;}
+input,select{
+  background:transparent!important;
+  color:var(--mm-stalactite)!important;
+  border:1px solid var(--mm-stalactite)!important;
+}
+input::placeholder{color:rgba(230,231,232,.65);}
+input:focus,select:focus{outline:none;box-shadow:0 0 0 2px rgba(230,231,232,.25);}
+.mm-btn{
+  background:var(--mm-bluebird)!important;
+  color:var(--mm-stalactite)!important;
+  border-color:var(--mm-bluebird)!important;
+  transition:.15s ease;
+}
+.mm-btn:hover{opacity:.88;}
+.mm-btn:active{transform:translateY(1px);}
+</style>
 </head>
 
 <body class="min-h-screen font-mono p-4">
-<div class="max-w-md mx-auto border border-white p-4 min-h-screen">
 
-<!-- HEADER -->
+<div class="max-w-md mx-auto border p-4 min-h-screen">
+
 <div class="flex justify-between items-start mb-4">
-  <div class="flex items-start gap-3">
-    <img src="/apple-touch-icon.png" class="w-8 h-8 mt-1" />
-    <div>
-      <h1 class="text-xl tracking-widest">
-        <span id="mmTitle">MACRO MATRIX CALCULATOR</span>
-      </h1>
-      <p class="text-gray-400 text-sm">
-        Ingredient vectors, summed against daily targets.
-      </p>
-    </div>
-  </div>
-
-  <a href="/bmr.html"
-     class="mm-btn border border-white px-3 py-2 text-sm rounded-lg">
-     BMR / TDEE
-  </a>
+<div class="flex items-start gap-3">
+<img src="/apple-touch-icon.png" class="w-8 h-8 mt-1" />
+<div>
+<h1 class="text-xl tracking-widest"><span id="mmTitle">MACRO MATRIX CALCULATOR</span></h1>
+<p class="text-sm text-gray-400">Ingredient vectors, summed against daily targets.</p>
+</div>
+</div>
+<a href="/bmr.html" class="mm-btn px-3 py-2 text-sm rounded-lg">BMR / TDEE</a>
 </div>
 
-<!-- TARGETS -->
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-  <input id="targetProtein" type="number" placeholder="TARGET PROTEIN" class="p-2 border border-white" />
-  <input id="targetCarbs" type="number" placeholder="TARGET CARBS" class="p-2 border border-white" />
-  <input id="targetFat" type="number" placeholder="TARGET FAT" class="p-2 border border-white" />
+<input id="targetProtein" type="number" placeholder="TARGET PROTEIN" class="p-2 border" />
+<input id="targetCarbs" type="number" placeholder="TARGET CARBS" class="p-2 border" />
+<input id="targetFat" type="number" placeholder="TARGET FAT" class="p-2 border" />
 </div>
 
-<!-- INGREDIENT INPUT -->
 <div class="grid gap-2 mb-3">
-  <input id="name" placeholder="INGREDIENT" class="p-2 border border-white" />
-  <div id="results" class="border border-white hidden max-h-40 overflow-y-auto"></div>
-  <input id="protein" type="number" placeholder="PROTEIN (g / serving)" class="p-2 border border-white" />
-  <input id="carbs" type="number" placeholder="CARBS (g / serving)" class="p-2 border border-white" />
-  <input id="fat" type="number" placeholder="FAT (g / serving)" class="p-2 border border-white" />
-  <input id="quantity" type="number" value="1" min="1" placeholder="QTY" class="p-2 border border-white" />
-  <button id="addBtn" class="mm-btn border border-white py-3 text-lg">ADD</button>
+<input id="name" placeholder="INGREDIENT" class="p-2 border" />
+<input id="protein" type="number" placeholder="PROTEIN (g)" class="p-2 border" />
+<input id="carbs" type="number" placeholder="CARBS (g)" class="p-2 border" />
+<input id="fat" type="number" placeholder="FAT (g)" class="p-2 border" />
+<input id="quantity" type="number" value="1" min="1" placeholder="QTY" class="p-2 border" />
+<button id="addBtn" class="mm-btn py-3 text-lg">ADD</button>
 </div>
 
-<!-- TABLE -->
 <div class="overflow-x-auto mb-4">
-<table class="w-full border border-white border-collapse text-xs">
+<table class="w-full border border-collapse text-xs">
 <thead>
 <tr>
-<th class="border border-white p-2">INGREDIENT</th>
-<th class="border border-white p-2">QTY</th>
-<th class="border border-white p-2">P</th>
-<th class="border border-white p-2">C</th>
-<th class="border border-white p-2">F</th>
-<th class="border border-white p-2">EDIT</th>
+<th class="border p-2">INGREDIENT</th>
+<th class="border p-2">QTY</th>
+<th class="border p-2">P</th>
+<th class="border p-2">C</th>
+<th class="border p-2">F</th>
+<th class="border p-2">EDIT</th>
 </tr>
 </thead>
 <tbody id="table"></tbody>
 </table>
 </div>
 
-<!-- TOTALS -->
-<div class="border border-white p-3">
-  <div class="text-xs text-gray-400">Σ CALORIES</div>
-  <div id="totalCalories" class="text-2xl font-semibold">0</div>
+<div class="border p-3 mb-3">
+<div class="text-xs text-gray-400">Σ PROTEIN</div>
+<div id="totalProtein" class="text-2xl font-semibold">0</div>
 </div>
 
-<button id="resetBtn"
-        class="mm-btn border border-white px-4 py-3 text-lg w-full rounded-lg mt-4">
-  RESET
-</button>
+<div class="border p-3 mb-3">
+<div class="text-xs text-gray-400">Σ CARBS</div>
+<div id="totalCarbs" class="text-2xl font-semibold">0</div>
+</div>
+
+<div class="border p-3 mb-3">
+<div class="text-xs text-gray-400">Σ FAT</div>
+<div id="totalFat" class="text-2xl font-semibold">0</div>
+</div>
+
+<div class="border p-3 mb-3">
+<div class="text-xs text-gray-400">Σ CALORIES</div>
+<div id="totalCalories" class="text-2xl font-semibold">0</div>
+</div>
+
+<button id="resetBtn" class="mm-btn w-full py-3 rounded-lg">RESET</button>
 
 </div>
 
 <script>
 let ingredients = JSON.parse(localStorage.getItem('ingredients')) || [];
-let targets = JSON.parse(localStorage.getItem('targets')) || { protein:0, carbs:0, fat:0 };
+let targets = JSON.parse(localStorage.getItem('targets')) || {protein:0,carbs:0,fat:0};
 
-const nameInput = document.getElementById('name');
-const proteinInput = document.getElementById('protein');
-const carbsInput = document.getElementById('carbs');
-const fatInput = document.getElementById('fat');
-const quantityInput = document.getElementById('quantity');
-const addBtn = document.getElementById('addBtn');
-const tableBody = document.getElementById('table');
+const nameInput=document.getElementById('name');
+const proteinInput=document.getElementById('protein');
+const carbsInput=document.getElementById('carbs');
+const fatInput=document.getElementById('fat');
+const quantityInput=document.getElementById('quantity');
+const tableBody=document.getElementById('table');
 
-addBtn.addEventListener('click', () => {
-  if(!nameInput.value.trim()) return;
+const targetProteinInput=document.getElementById('targetProtein');
+const targetCarbsInput=document.getElementById('targetCarbs');
+const targetFatInput=document.getElementById('targetFat');
 
-  ingredients.push({
-    name: nameInput.value.toUpperCase(),
-    quantity: Number(quantityInput.value)||1,
-    protein: Number(proteinInput.value)||0,
-    carbs: Number(carbsInput.value)||0,
-    fat: Number(fatInput.value)||0
-  });
+document.getElementById('addBtn').onclick=addIngredient;
+document.getElementById('resetBtn').onclick=resetAll;
 
-  nameInput.value = '';
-  proteinInput.value = '';
-  carbsInput.value = '';
-  fatInput.value = '';
-  quantityInput.value = 1;
-
-  update();
-});
-
-function update(){
-  tableBody.innerHTML='';
-  let totals = {protein:0, carbs:0, fat:0};
-
-  ingredients.forEach((i,idx)=>{
-    totals.protein += i.protein*i.quantity;
-    totals.carbs += i.carbs*i.quantity;
-    totals.fat += i.fat*i.quantity;
-
-    tableBody.innerHTML += `
-      <tr>
-        <td class="border border-white p-2">${i.name}</td>
-        <td class="border border-white p-2">${i.quantity}</td>
-        <td class="border border-white p-2">${i.protein*i.quantity}</td>
-        <td class="border border-white p-2">${i.carbs*i.quantity}</td>
-        <td class="border border-white p-2">${i.fat*i.quantity}</td>
-        <td class="border border-white p-2">
-          <button onclick="removeIngredient(${idx})">X</button>
-        </td>
-      </tr>`;
-  });
-
-  const calories = totals.protein*4 + totals.carbs*4 + totals.fat*9;
-  document.getElementById('totalCalories').textContent = calories;
-  localStorage.setItem('ingredients',JSON.stringify(ingredients));
+function saveAll(){
+localStorage.setItem('ingredients',JSON.stringify(ingredients));
+localStorage.setItem('targets',JSON.stringify(targets));
 }
 
-function removeIngredient(index){
-  ingredients.splice(index,1);
-  update();
+function addIngredient(){
+if(!nameInput.value.trim())return;
+ingredients.push({
+name:nameInput.value.toUpperCase(),
+quantity:Number(quantityInput.value)||1,
+protein:Number(proteinInput.value)||0,
+carbs:Number(carbsInput.value)||0,
+fat:Number(fatInput.value)||0
+});
+nameInput.value=proteinInput.value=carbsInput.value=fatInput.value="";
+quantityInput.value=1;
+update();
+}
+
+function removeIngredient(i){
+ingredients.splice(i,1);
+update();
+}
+
+function renderTable(){
+tableBody.innerHTML="";
+ingredients.forEach((i,idx)=>{
+let row=document.createElement("tr");
+row.innerHTML=`
+<td class="border p-2">${i.name}</td>
+<td class="border p-2 text-center">${i.quantity}</td>
+<td class="border p-2 text-center">${i.protein*i.quantity}</td>
+<td class="border p-2 text-center">${i.carbs*i.quantity}</td>
+<td class="border p-2 text-center">${i.fat*i.quantity}</td>
+<td class="border p-2 text-center">
+<button onclick="removeIngredient(${idx})">X</button>
+</td>`;
+tableBody.appendChild(row);
+});
+}
+
+function calculateTotals(){
+let totals=ingredients.reduce((a,i)=>{
+a.protein+=i.protein*i.quantity;
+a.carbs+=i.carbs*i.quantity;
+a.fat+=i.fat*i.quantity;
+return a;
+},{protein:0,carbs:0,fat:0});
+
+targets.protein=Number(targetProteinInput.value)||0;
+targets.carbs=Number(targetCarbsInput.value)||0;
+targets.fat=Number(targetFatInput.value)||0;
+
+let calories=(totals.protein*4)+(totals.carbs*4)+(totals.fat*9);
+
+document.getElementById("totalProtein").textContent=totals.protein;
+document.getElementById("totalCarbs").textContent=totals.carbs;
+document.getElementById("totalFat").textContent=totals.fat;
+document.getElementById("totalCalories").textContent=calories;
+
+}
+
+function update(){
+renderTable();
+calculateTotals();
+saveAll();
+}
+
+function resetAll(){
+ingredients=[];
+targets={protein:0,carbs:0,fat:0};
+targetProteinInput.value="";
+targetCarbsInput.value="";
+targetFatInput.value="";
+update();
 }
 
 update();
 </script>
+
 </body>
 </html>
