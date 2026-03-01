@@ -7,7 +7,9 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-/* Background */
+/* =========================
+   BACKGROUND (pixel art + dust)
+========================= */
 #bgArt {
   position: fixed;
   inset: 0;
@@ -18,7 +20,7 @@
   overflow: hidden;
 }
 
-/* Windows 98 stepped zoom */
+/* Windows 98 crunchy stepped zoom */
 #bgArt img {
   width: min(620px, 92vw);
   height: auto;
@@ -44,72 +46,168 @@
   inset: 0;
 }
 
-/* Boot text */
+/* Subtle CRT scanlines (Win98 monitor vibe) */
+#scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.14;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.03) 0px,
+      rgba(255,255,255,0.03) 1px,
+      rgba(0,0,0,0) 3px,
+      rgba(0,0,0,0) 6px
+    );
+  mix-blend-mode: overlay;
+  animation: scanShift 6s linear infinite;
+}
+
+@keyframes scanShift {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(18px); }
+}
+
+/* =========================
+   BOOT TEXT (typed + cursor + blink)
+========================= */
 #bootText {
   position: fixed;
-  bottom: 16px;
-  left: 16px;
+  bottom: 14px;
+  left: 14px;
+  z-index: 30;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 11px;
   letter-spacing: 1px;
   color: #9ca3af;
-  font-family: monospace;
-  animation: blink 1.2s steps(1,end) infinite;
-  z-index: 20;
+  user-select: none;
+  white-space: nowrap;
 }
 
-@keyframes blink {
+#cursor {
+  display: inline-block;
+  width: 8px;
+  margin-left: 2px;
+  animation: cursorBlink 1s steps(1,end) infinite;
+}
+
+@keyframes cursorBlink {
   50% { opacity: 0; }
 }
 
+/* =========================
+   WIN98 WINDOW (beveled frame)
+========================= */
+.win98 {
+  position: relative;
+  z-index: 10;
+  width: min(560px, 100%);
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: none;
+}
+
+.win98-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 2px solid #fff;
+}
+
+.win98-titlebar .title {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #e5e7eb;
+}
+
+.win98-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.win98-btn {
+  width: 14px;
+  height: 14px;
+  border: 1px solid #fff;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  line-height: 1;
+  color: #fff;
+  opacity: 0.9;
+}
+
+.win98-body {
+  padding: 18px;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  #bgArt img {
-    animation: none;
-    opacity: 0.4;
-    transform: scale(1);
-  }
+  #bgArt img { animation: none; opacity: 0.4; transform: scale(1); }
+  #scanlines { animation: none; }
+  #cursor { animation: none; opacity: 1; }
 }
 </style>
 </head>
 
 <body class="bg-black text-white min-h-screen font-mono flex items-center justify-center p-6">
 
+<!-- Pixel Art Background -->
 <div id="bgArt">
   <canvas id="dust"></canvas>
-  <img id="meal" src="/mcdonalds-pixel.jpg" alt="">
+  <img id="meal" src="/mcdonalds-pixel.jpg" alt="" aria-hidden="true">
 </div>
 
-<!-- Boot text -->
-<div id="bootText">SYSTEM INITIALIZING...</div>
+<!-- CRT Scanlines -->
+<div id="scanlines" aria-hidden="true"></div>
 
-<div class="relative z-10 max-w-xl w-full border border-white p-8 space-y-6">
+<!-- Boot Text -->
+<div id="bootText">
+  <span id="bootLine"></span><span id="cursor">█</span>
+</div>
 
-  <h1 class="text-2xl tracking-widest text-center">
-    INSTALL MACRO MATRIX
-  </h1>
-
-  <p class="text-gray-400 text-center">
-    iPhone setup (Safari only).
-  </p>
-
-  <ol class="list-decimal ml-5 text-gray-300 text-sm space-y-1">
-    <li>Open Macro Matrix in Safari</li>
-    <li>Tap the Share icon</li>
-    <li>Select <strong>Add to Home Screen</strong></li>
-    <li>Tap Add</li>
-  </ol>
-
-  <div class="text-center pt-2">
-    <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition">
-      ← Back to Macro Matrix
-    </a>
+<!-- Win98-style Window -->
+<div class="win98">
+  <div class="win98-titlebar">
+    <div class="title">MACRO MATRIX INSTALLER</div>
+    <div class="win98-controls" aria-hidden="true">
+      <div class="win98-btn">_</div>
+      <div class="win98-btn">□</div>
+      <div class="win98-btn">×</div>
+    </div>
   </div>
 
+  <div class="win98-body space-y-5">
+    <h1 class="text-xl tracking-widest text-center">INSTALL MACRO MATRIX</h1>
+
+    <p class="text-gray-400 text-center text-sm">
+      iPhone setup (Safari only).
+    </p>
+
+    <ol class="list-decimal ml-5 text-gray-300 text-sm space-y-1">
+      <li>Open Macro Matrix in Safari</li>
+      <li>Tap the Share icon</li>
+      <li>Select <strong>Add to Home Screen</strong></li>
+      <li>Tap Add</li>
+    </ol>
+
+    <div class="text-center pt-2">
+      <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition inline-block">
+        ← Back to Macro Matrix
+      </a>
+    </div>
+  </div>
 </div>
 
 <script>
+/* =========================
+   PIXEL DUST (same style, slightly chaotic)
+========================= */
 const canvas = document.getElementById("dust");
 const ctx = canvas.getContext("2d");
-
 let W, H;
 
 function resize() {
@@ -125,7 +223,6 @@ const MAX = 190;
 
 function spawn(burst = false) {
   if (particles.length > MAX) return;
-
   const size = Math.random() > 0.6 ? 3 : 2;
 
   particles.push({
@@ -135,21 +232,19 @@ function spawn(burst = false) {
     vy: -Math.random() * (burst ? 1.8 : 1.2) - 0.2,
     wobble: Math.random() * 0.05,
     wobbleOffset: Math.random() * 1000,
-    size: size,
+    size,
     life: 90 + Math.random() * 120,
-    color: colors[Math.floor(Math.random()*colors.length)]
+    color: colors[Math.floor(Math.random() * colors.length)]
   });
 }
 
 let frame = 0;
-
-function update() {
+function updateDust() {
   ctx.clearRect(0, 0, W, H);
   frame++;
 
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-
     p.x += p.vx + Math.sin(frame * p.wobble + p.wobbleOffset) * 0.6;
     p.y += p.vy;
     p.life--;
@@ -162,20 +257,48 @@ function update() {
 
   spawn();
   spawn();
+  if (Math.random() > 0.92) for (let i = 0; i < 6; i++) spawn(true);
 
-  if (Math.random() > 0.92) {
-    for (let i = 0; i < 6; i++) spawn(true);
+  requestAnimationFrame(updateDust);
+}
+updateDust();
+
+/* =========================
+   BOOT TEXT (typewriter + status swap)
+========================= */
+const bootLineEl = document.getElementById("bootLine");
+
+const lines = [
+  "SYSTEM INITIALIZING...",
+  "LOADING MACRO MODULES...",
+  "CALIBRATING TARGETS...",
+  "READY."
+];
+
+let lineIndex = 0;
+let charIndex = 0;
+
+function typeNext() {
+  const current = lines[lineIndex];
+
+  // typing
+  if (charIndex <= current.length) {
+    bootLineEl.textContent = current.slice(0, charIndex);
+    charIndex++;
+    setTimeout(typeNext, 45 + Math.random() * 35);
+    return;
   }
 
-  requestAnimationFrame(update);
+  // pause after full line
+  setTimeout(() => {
+    lineIndex = Math.min(lineIndex + 1, lines.length - 1);
+    charIndex = 0;
+    bootLineEl.textContent = "";
+    typeNext();
+  }, lineIndex === lines.length - 1 ? 999999 : 700);
 }
 
-update();
-
-/* Stop boot text after animation completes (20s) */
-setTimeout(() => {
-  document.getElementById("bootText").textContent = "SYSTEM READY";
-}, 20000);
+typeNext();
 </script>
 
 </body>
