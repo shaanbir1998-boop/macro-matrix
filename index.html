@@ -108,7 +108,7 @@
     <div class="grid grid-cols-1 gap-2 mb-3">
       <div class="flex gap-2">
         <input id="name" placeholder="INGREDIENT" class="p-2 border border-white flex-1" />
-        <button id="scanBtn" class="border border-white px-3 hover:bg-white hover:text-black transition" title="Scan barcode or label">📷</button>
+        <button id="scanBtn" type="button" class="border border-white px-3 hover:bg-white hover:text-black transition" title="Scan barcode or label">📷</button>
       </div>
       <div id="results" class="border border-white hidden max-h-40 overflow-y-auto"></div>
       <input id="protein" type="number" placeholder="PROTEIN (g / serving)" class="p-2 border border-white" />
@@ -192,6 +192,41 @@
 
     <div class="text-xs text-gray-500 mt-6 text-center border-t border-white pt-3">
       © 2026 Shaan Bir — Macro Matrix — MIT License
+    </div>
+  </div>
+
+
+
+  <!-- Scanner Modal (Barcode + Label OCR) -->
+  <div id="scanModal" class="fixed inset-0 hidden z-50">
+    <div class="absolute inset-0 bg-black/70"></div>
+
+    <div class="relative mx-auto mt-16 w-[92%] max-w-md border border-white p-3 bg-black">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-sm tracking-widest">SCANNER</div>
+        <button id="scanCloseBtn" class="border border-white px-3 py-1 hover:bg-white hover:text-black transition text-xs">CLOSE</button>
+      </div>
+
+      <div class="flex gap-2 mb-2">
+        <button id="scanTabBarcode" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs flex-1">BARCODE</button>
+        <button id="scanTabOCR" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs flex-1">LABEL (OCR)</button>
+      </div>
+
+      <video id="scanVideo" playsinline autoplay class="w-full border border-white"></video>
+
+      <div class="flex gap-2 mt-2">
+        <button id="scanActionBtn" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs flex-1">
+          START
+        </button>
+
+        <button id="scanUploadBtn" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs hidden">
+          UPLOAD
+        </button>
+        <input id="scanPhotoInput" type="file" accept="image/*" capture="environment" class="hidden">
+      </div>
+
+      <div id="scanStatus" class="text-xs text-gray-400 mt-2">Barcode mode: point at UPC/EAN.</div>
+      <canvas id="scanCanvas" class="hidden"></canvas>
     </div>
   </div>
 
@@ -802,39 +837,6 @@
     });
   }
 </script>
-
-  <!-- Scanner Modal (Barcode + Label OCR) -->
-  <div id="scanModal" class="fixed inset-0 hidden z-50">
-    <div class="absolute inset-0 bg-black/70"></div>
-
-    <div class="relative mx-auto mt-16 w-[92%] max-w-md border border-white p-3 bg-black">
-      <div class="flex items-center justify-between mb-2">
-        <div class="text-sm tracking-widest">SCANNER</div>
-        <button id="scanCloseBtn" class="border border-white px-3 py-1 hover:bg-white hover:text-black transition text-xs">CLOSE</button>
-      </div>
-
-      <div class="flex gap-2 mb-2">
-        <button id="scanTabBarcode" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs flex-1">BARCODE</button>
-        <button id="scanTabOCR" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs flex-1">LABEL (OCR)</button>
-      </div>
-
-      <video id="scanVideo" playsinline autoplay class="w-full border border-white"></video>
-
-      <div class="flex gap-2 mt-2">
-        <button id="scanActionBtn" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs flex-1">
-          START
-        </button>
-
-        <button id="scanUploadBtn" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs hidden">
-          UPLOAD
-        </button>
-        <input id="scanPhotoInput" type="file" accept="image/*" capture="environment" class="hidden">
-      </div>
-
-      <div id="scanStatus" class="text-xs text-gray-400 mt-2">Barcode mode: point at UPC/EAN.</div>
-      <canvas id="scanCanvas" class="hidden"></canvas>
-    </div>
-  </div>
 
 </body>
 </html>
