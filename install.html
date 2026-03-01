@@ -10,45 +10,105 @@
 <body class="bg-black text-white min-h-screen font-mono flex items-center justify-center p-6">
 
   <div class="max-w-xl w-full border border-white p-8 space-y-6">
-    
+
     <h1 class="text-2xl tracking-widest text-center">
       INSTALL MACRO MATRIX
     </h1>
 
     <p class="text-gray-400 text-center">
-      Turn Macro Matrix into a full-screen iPhone app.
+      Turn Macro Matrix into an app on your phone or desktop.
     </p>
 
-    <div class="space-y-4 text-sm">
+    <!-- Install button (shows only when supported) -->
+    <div id="installWrap" class="hidden text-center">
+      <button
+        id="installBtn"
+        class="border border-white px-6 py-3 hover:bg-white hover:text-black transition w-full sm:w-auto"
+      >
+        Install App
+      </button>
+      <p class="text-xs text-gray-500 mt-2">
+        If you don’t see this button, use the steps below.
+      </p>
+    </div>
+
+    <div class="space-y-5 text-sm">
 
       <div>
-        <h2 class="text-white font-bold">On iPhone (Safari only):</h2>
+        <h2 class="text-white font-bold">On iPhone (Safari):</h2>
         <ol class="list-decimal ml-5 space-y-1 text-gray-300">
-          <li>Open the website in Safari</li>
-          <li>Tap the Share icon</li>
-          <li>Select <strong>Add to Home Screen</strong></li>
-          <li>Tap Add</li>
+          <li>Open Macro Matrix in <span class="text-white">Safari</span></li>
+          <li>Tap the <span class="text-white">Share</span> icon (square with arrow)</li>
+          <li>Scroll and tap <span class="text-white">Add to Home Screen</span></li>
+          <li>Tap <span class="text-white">Add</span></li>
+        </ol>
+        <p class="text-xs text-gray-500 mt-2">
+          Note: “Add to Home Screen” won’t show inside Instagram/Chrome in-app browsers—open in Safari.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="text-white font-bold">On Android (Chrome):</h2>
+        <ol class="list-decimal ml-5 space-y-1 text-gray-300">
+          <li>Open Macro Matrix in <span class="text-white">Chrome</span></li>
+          <li>Tap the <span class="text-white">⋮</span> menu</li>
+          <li>Tap <span class="text-white">Install app</span> or <span class="text-white">Add to Home screen</span></li>
+          <li>Confirm <span class="text-white">Install</span></li>
         </ol>
       </div>
 
       <div>
-        <h2 class="text-white font-bold">On Desktop (Chrome):</h2>
+        <h2 class="text-white font-bold">On Desktop (Chrome / Edge):</h2>
         <ol class="list-decimal ml-5 space-y-1 text-gray-300">
           <li>Open the website</li>
-          <li>Click the install icon in the address bar</li>
-          <li>Click Install</li>
+          <li>Look for the <span class="text-white">Install</span> icon in the address bar (or browser menu)</li>
+          <li>Click <span class="text-white">Install</span></li>
         </ol>
       </div>
 
     </div>
 
-    <div class="text-center pt-4">
-      <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition">
+    <div class="text-center pt-2">
+      <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition inline-block">
         ← Back to Macro Matrix
       </a>
     </div>
 
   </div>
+
+  <script>
+    // Progressive Web App install prompt (Chrome/Edge/Android)
+    let deferredPrompt = null;
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      // Prevent automatic mini-infobar prompt
+      e.preventDefault();
+      deferredPrompt = e;
+
+      // Show install UI
+      const wrap = document.getElementById("installWrap");
+      wrap.classList.remove("hidden");
+    });
+
+    document.getElementById("installBtn").addEventListener("click", async () => {
+      if (!deferredPrompt) return;
+
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+
+      // Clear the saved prompt since it can only be used once
+      deferredPrompt = null;
+
+      // Hide the button after interaction
+      document.getElementById("installWrap").classList.add("hidden");
+    });
+
+    // Optional: hide the install button if already installed (some browsers support this)
+    window.addEventListener("appinstalled", () => {
+      deferredPrompt = null;
+      document.getElementById("installWrap").classList.add("hidden");
+    });
+  </script>
 
 </body>
 </html>
