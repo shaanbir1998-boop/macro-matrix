@@ -1,3 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Install Macro Matrix</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+/* Background */
+#bgArt {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Windows 98 crunchy stepped zoom */
+#bgArt img {
+  width: min(620px, 92vw);
+  height: auto;
+  opacity: 0;
+  image-rendering: pixelated;
+  transform-origin: center;
+  filter: contrast(1.15) saturate(1.05);
+  animation: win98Zoom 10s steps(14, end) 2 forwards;
+}
+
+/* Stepped appear → zoom → disappear */
+@keyframes win98Zoom {
+  0%   { opacity: 0;   transform: scale(0.35); }
+  15%  { opacity: 0.7; transform: scale(0.75); }
+  30%  { opacity: 0.9; transform: scale(1.05); }
+  55%  { opacity: 0.9; transform: scale(1.1); }
+  75%  { opacity: 0.4; transform: scale(0.85); }
+  100% { opacity: 0;   transform: scale(0.4); }
+}
+
+/* Canvas */
+#dust {
+  position: absolute;
+  inset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #bgArt img {
+    animation: none;
+    opacity: 0.4;
+    transform: scale(1);
+  }
+}
+</style>
+</head>
+
+<body class="bg-black text-white min-h-screen font-mono flex items-center justify-center p-6">
+
+<div id="bgArt">
+  <canvas id="dust"></canvas>
+  <img id="meal" src="/mcdonalds-pixel.jpg" alt="">
+</div>
+
+<div class="relative z-10 max-w-xl w-full border border-white p-8 space-y-6">
+
+  <h1 class="text-2xl tracking-widest text-center">
+    INSTALL MACRO MATRIX
+  </h1>
+
+  <p class="text-gray-400 text-center">
+    iPhone setup (Safari only).
+  </p>
+
+  <ol class="list-decimal ml-5 text-gray-300 text-sm space-y-1">
+    <li>Open Macro Matrix in Safari</li>
+    <li>Tap the Share icon</li>
+    <li>Select <strong>Add to Home Screen</strong></li>
+    <li>Tap Add</li>
+  </ol>
+
+  <div class="text-center pt-2">
+    <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition">
+      ← Back to Macro Matrix
+    </a>
+  </div>
+
+</div>
+
 <script>
 const canvas = document.getElementById("dust");
 const ctx = canvas.getContext("2d");
@@ -11,7 +100,7 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-/* Retro palette (unchanged) */
+/* Same retro palette */
 const colors = [
   "#facc15",  // fries yellow
   "#ef4444",  // red
@@ -20,7 +109,7 @@ const colors = [
 ];
 
 const particles = [];
-const MAX = 190;  // slightly increased
+const MAX = 190;
 
 function spawn(burst = false) {
   if (particles.length > MAX) return;
@@ -31,7 +120,7 @@ function spawn(burst = false) {
     x: W/2 + (Math.random() - 0.5) * 340,
     y: H/2 + (Math.random() - 0.5) * 240,
 
-    // more chaotic velocity
+    // more chaotic velocity but same particle style
     vx: (Math.random() - 0.5) * (burst ? 1.4 : 0.8),
     vy: -Math.random() * (burst ? 1.8 : 1.2) - 0.2,
 
@@ -54,7 +143,7 @@ function update() {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
 
-    // horizontal wobble (adds chaos)
+    // horizontal wobble = subtle chaos
     p.x += p.vx + Math.sin(frame * p.wobble + p.wobbleOffset) * 0.6;
     p.y += p.vy;
     p.life--;
@@ -69,7 +158,7 @@ function update() {
   spawn();
   spawn();
 
-  // occasional micro-burst
+  // occasional micro burst
   if (Math.random() > 0.92) {
     for (let i = 0; i < 6; i++) spawn(true);
   }
@@ -79,3 +168,6 @@ function update() {
 
 update();
 </script>
+
+</body>
+</html>
