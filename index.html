@@ -12,6 +12,11 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- OCR + Barcode Scanner libs -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/zxing-browser.min.js"></script>
+
+
   <style>
     :root{
       --mm-silhouette: #000000;     /* Silhouette 19-4103 TCX */
@@ -69,132 +74,174 @@
   </style>
 </head>
 
-<body class="min-h-screen font-mono p-4">
+<body class="bg-black text-white min-h-screen font-mono p-4">
   <div class="max-w-md mx-auto border border-white p-4 min-h-screen">
-    <div class="flex justify-between items-start mb-4">
-      <div class="flex items-start gap-3">
-        <img src="/apple-touch-icon.png" alt="Logo" class="w-8 h-8 mt-1" />
+    <!-- Header -->
+    <div class="mb-4">
+      <div class="flex items-center justify-between">
+        <h1 class="text-xl tracking-widest">
+          <span id="mmTitle">MACRO MATRIX</span>
+        </h1>
 
-        <div>
-          <h1 class="text-xl tracking-widest">
-            <span id="mmTitle">MACRO MATRIX CALCULATOR</span>
-          </h1>
-          <p class="text-gray-400 text-sm">
-            Ingredient vectors, summed against daily targets.
-          </p>
-          <a href="/install.html" class="inline-block mt-2 border border-white px-3 py-1 text-xs hover:bg-white hover:text-black transition">
-            INSTALL AS APP →
-          </a>
-        </div>
+        <a href="index.html" class="border border-white px-3 py-2 rounded-lg text-xs hover:bg-white hover:text-black transition"
+           aria-label="Back">
+          ←
+        </a>
       </div>
 
-      <a href="/bmr.html" class="mm-btn border border-white px-3 py-2 text-sm rounded-lg inline-flex items-center justify-center">
-        BMR / TDEE
-      </a>
+      <p class="text-gray-400 text-sm mt-1">
+        Ingredient vectors, summed against daily targets.
+      </p>
     </div>
 
     <!-- Targets -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-      <input id="targetProtein" type="number" placeholder="TARGET PROTEIN" class="p-2 border border-white" />
-      <input id="targetCarbs" type="number" placeholder="TARGET CARBS" class="p-2 border border-white" />
-      <input id="targetFat" type="number" placeholder="TARGET FAT" class="p-2 border border-white" />
-    </div>
+    <div class="border border-white p-3 mb-4 rounded-xl">
+      <div class="text-sm tracking-widest mb-2" style="color: var(--mm-secret);">DAILY TARGETS</div>
 
-    <!-- Input Row -->
-    <div class="grid grid-cols-1 gap-2 mb-3">
-      <input id="name" placeholder="INGREDIENT" class="p-2 border border-white" />
-      <div id="results" class="border border-white hidden max-h-40 overflow-y-auto"></div>
-      <input id="protein" type="number" placeholder="PROTEIN (g / serving)" class="p-2 border border-white" />
-      <input id="carbs" type="number" placeholder="CARBS (g / serving)" class="p-2 border border-white" />
-      <input id="fat" type="number" placeholder="FAT (g / serving)" class="p-2 border border-white" />
-      <input id="quantity" type="number" value="1" min="1" placeholder="QTY" class="p-2 border border-white" />
-      <button id="addBtn" class="border border-white hover:bg-white hover:text-black transition py-3 text-lg mm-btn">ADD</button>
-    </div>
+      <div class="grid grid-cols-3 gap-2">
+        <input id="targetProtein" type="number" placeholder="PRO (g)" class="p-2 border border-white" />
+        <input id="targetCarbs" type="number" placeholder="CARB (g)" class="p-2 border border-white" />
+        <input id="targetFat" type="number" placeholder="FAT (g)" class="p-2 border border-white" />
+      </div>
 
-    <!-- Save Meal -->
-    <div class="flex gap-2 mb-3">
-      <input id="mealName" placeholder="MEAL NAME" class="p-2 border border-white flex-1" />
-      <button id="saveMealBtn" class="border border-white hover:bg-white hover:text-black transition px-4 py-3 text-lg mm-btn">
-        SAVE MEAL
+      <button id="saveTargetsBtn" class="mm-btn border border-white w-full mt-2 py-2 rounded-lg text-sm">
+        SAVE TARGETS
       </button>
     </div>
 
-    <!-- Load Meal -->
-    <div class="flex items-center gap-2 mb-3 h-11">
-      <select id="mealSelect" class="flex-1 px-2 h-8 text-sm border border-white min-w-0">
-        <option value="">LOAD MEAL</option>
-      </select>
+    <!-- Meal Controls -->
+    <div class="border border-white p-3 mb-4 rounded-xl">
+      <div class="text-sm tracking-widest mb-2" style="color: var(--mm-secret);">MEALS</div>
 
-      <button id="loadMealBtn" class="mm-btn w-8 h-8 flex items-center justify-center rounded-md text-xs"></button>
-      <button id="deleteMealBtn" class="mm-btn w-8 h-8 flex items-center justify-center rounded-md text-xs"></button>
-    </div>
-
-    <!-- Matrix Table -->
-    <div class="overflow-x-auto mb-4">
-      <table class="w-full border border-white border-collapse text-xs">
-        <thead>
-          <tr>
-            <th class="border border-white p-2">INGREDIENT</th>
-            <th class="border border-white p-2">QTY</th>
-            <th class="border border-white p-2">P</th>
-            <th class="border border-white p-2">C</th>
-            <th class="border border-white p-2">F</th>
-            <th class="border border-white p-2">EDIT</th>
-          </tr>
-        </thead>
-        <tbody id="table"></tbody>
-      </table>
-    </div>
-
-    <!-- Totals + Progress -->
-    <div class="grid grid-cols-1 gap-3 sticky bottom-0 pb-safe">
-      <div class="border border-white p-3">
-        <div class="text-xs text-gray-400">Σ PROTEIN</div>
-        <div id="totalProtein" class="text-2xl font-semibold">0</div>
-        <div class="w-full bg-gray-800 h-1 mt-2">
-          <div id="proteinBar" class="bg-blue-400 h-1 w-0 transition-all duration-300"></div>
-        </div>
+      <div class="flex gap-2 mb-2">
+        <input id="mealName" placeholder="MEAL NAME" class="p-2 border border-white flex-1" />
+        <button id="saveMealBtn" class="mm-btn border border-white px-3 py-2 rounded-lg text-xs whitespace-nowrap">
+          SAVE
+        </button>
       </div>
-      <div class="border border-white p-3">
-        <div class="text-xs text-gray-400">Σ CARBS</div>
-        <div id="totalCarbs" class="text-2xl font-semibold">0</div>
-        <div class="w-full bg-gray-800 h-1 mt-2">
-          <div id="carbsBar" class="bg-amber-400 h-1 w-0 transition-all duration-300"></div>
-        </div>
-      </div>
-      <div class="border border-white p-3">
-        <div class="text-xs text-gray-400">Σ FAT</div>
-        <div id="totalFat" class="text-2xl font-semibold">0</div>
-        <div class="w-full bg-gray-800 h-1 mt-2">
-          <div id="fatBar" class="bg-purple-400 h-1 w-0 transition-all duration-300"></div>
-        </div>
+
+      <div class="flex gap-2">
+        <select id="mealSelect" class="p-2 border border-white flex-1 rounded-lg"></select>
+
+        <button id="loadMealBtn" class="mm-btn border border-white px-3 py-2 rounded-lg text-xs whitespace-nowrap">
+          LOAD
+        </button>
+
+        <button id="deleteMealBtn" class="border border-white px-3 py-2 rounded-lg text-xs whitespace-nowrap hover:bg-white hover:text-black transition">
+          DEL
+        </button>
       </div>
     </div>
 
-    <!-- Calories -->
-    <div class="border border-white p-3">
-      <div class="text-xs text-gray-400">Σ CALORIES</div>
-      <div id="totalCalories" class="text-2xl font-semibold">0</div>
+    <!-- Add Ingredient -->
+    <div class="border border-white p-3 mb-4 rounded-xl">
+      <div class="text-sm tracking-widest mb-2" style="color: var(--mm-secret);">ADD INGREDIENT</div>
+
+      <!-- Input Row -->
+      <div class="grid grid-cols-1 gap-2 mb-3">
+        <div class="flex gap-2">
+        <input id="name" placeholder="INGREDIENT" class="p-2 border border-white flex-1" />
+        <button id="scanBtn" class="mm-btn border border-white px-3 py-2 rounded-lg text-xs whitespace-nowrap">SCAN</button>
+      </div>
+        <div id="results" class="border border-white hidden max-h-40 overflow-y-auto"></div>
+        <input id="protein" type="number" placeholder="PROTEIN (g / serving)" class="p-2 border border-white" />
+        <input id="carbs" type="number" placeholder="CARBS (g / serving)" class="p-2 border border-white" />
+        <input id="fat" type="number" placeholder="FAT (g / serving)" class="p-2 border border-white" />
+        <input id="quantity" type="number" value="1" min="1" placeholder="QTY" class="p-2 border border-white" />
+        <button id="addBtn" class="border border-white hover:bg-white hover:text-black transition py-3 text-lg mm-btn">ADD</button>
+      </div>
     </div>
 
-    <div class="mt-6">
-      <button id="resetBtn" class="mm-btn border border-white px-4 py-3 text-lg w-full rounded-lg">
-        RESET
-      </button>
+    <!-- Totals -->
+    <div class="border border-white p-3 mb-4 rounded-xl">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-sm tracking-widest" style="color: var(--mm-secret);">TOTALS</div>
+        <div class="text-xs text-gray-400" id="totalsHint"></div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="border border-white p-2 rounded-lg">
+          <div class="text-xs text-gray-400">PRO</div>
+          <div id="totalProtein" class="text-lg">0</div>
+          <div id="diffProtein" class="text-xs text-gray-400">0</div>
+        </div>
+        <div class="border border-white p-2 rounded-lg">
+          <div class="text-xs text-gray-400">CARB</div>
+          <div id="totalCarbs" class="text-lg">0</div>
+          <div id="diffCarbs" class="text-xs text-gray-400">0</div>
+        </div>
+        <div class="border border-white p-2 rounded-lg">
+          <div class="text-xs text-gray-400">FAT</div>
+          <div id="totalFat" class="text-lg">0</div>
+          <div id="diffFat" class="text-xs text-gray-400">0</div>
+        </div>
+      </div>
     </div>
 
-    <div class="text-xs text-gray-500 mt-6 text-center border-t border-white pt-3">
-      © 2026 Shaan Bir — Macro Matrix — MIT License
+    <!-- Ingredient List -->
+    <div class="border border-white p-3 rounded-xl">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-sm tracking-widest" style="color: var(--mm-secret);">INGREDIENTS</div>
+        <button id="clearBtn" class="border border-white px-3 py-1 rounded-lg text-xs hover:bg-white hover:text-black transition">
+          CLEAR
+        </button>
+      </div>
+
+      <div id="list" class="space-y-2"></div>
     </div>
+
+    <!-- Reset -->
+    <button id="resetBtn" class="border border-white w-full mt-4 py-3 rounded-xl text-sm hover:bg-white hover:text-black transition">
+      RESET
+    </button>
   </div>
+
+<!-- Scanner Modal (Barcode + Label OCR) -->
+<div id="scanModal" class="fixed inset-0 hidden z-50">
+  <div class="absolute inset-0 bg-black/80"></div>
+
+  <div class="relative mx-auto mt-10 w-[92%] max-w-md border border-white p-3 rounded-xl"
+       style="background: var(--mm-silhouette);">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-sm tracking-widest" style="color: var(--mm-stalactite);">
+        SCAN
+      </div>
+      <button id="scanClose" class="mm-btn border border-white px-3 py-1 rounded-lg text-xs">CLOSE</button>
+    </div>
+
+    <div class="flex gap-2 mb-3">
+      <button id="tabBarcode" class="mm-btn border border-white px-3 py-2 rounded-lg text-xs flex-1">BARCODE</button>
+      <button id="tabLabel" class="mm-btn border border-white px-3 py-2 rounded-lg text-xs flex-1">LABEL (OCR)</button>
+    </div>
+
+    <video id="scanVideo" playsinline autoplay class="w-full rounded-lg border border-white"></video>
+
+    <div class="flex gap-2 mt-3">
+      <button id="scanAction" class="mm-btn border border-white px-4 py-3 rounded-lg text-sm flex-1">
+        START BARCODE SCAN
+      </button>
+
+      <button id="scanUploadBtn" class="mm-btn border border-white px-4 py-3 rounded-lg text-sm hidden">
+        UPLOAD
+      </button>
+      <input id="scanPhotoInput" type="file" accept="image/*" capture="environment" class="hidden">
+    </div>
+
+    <div id="scanStatus" class="text-xs text-gray-400 mt-2">
+      Barcode mode: point at UPC/EAN and hold steady.
+    </div>
+
+    <canvas id="scanCanvas" class="hidden"></canvas>
+  </div>
+</div>
 
 <script>
   // ----------------------------
   // State
   // ----------------------------
-  let ingredients = JSON.parse(localStorage.getItem('ingredients')) || [];
-  let meals = JSON.parse(localStorage.getItem('meals')) || [];
-  let targets = JSON.parse(localStorage.getItem('targets')) || { protein: 0, carbs: 0, fat: 0 };
+  let ingredients = JSON.parse(localStorage.getItem("ingredients") || "[]");
+  let targets = JSON.parse(localStorage.getItem("targets") || '{"protein":0,"carbs":0,"fat":0}');
+  let meals = JSON.parse(localStorage.getItem("meals") || "{}");
 
   // ----------------------------
   // Elements
@@ -203,296 +250,295 @@
   const proteinInput = document.getElementById('protein');
   const carbsInput = document.getElementById('carbs');
   const fatInput = document.getElementById('fat');
-  const resultsBox = document.getElementById("results");
-
-  const quantityInput = document.getElementById('quantity');
+  const qtyInput = document.getElementById('quantity');
   const addBtn = document.getElementById('addBtn');
-  const saveMealBtn = document.getElementById('saveMealBtn');
-  const mealNameInput = document.getElementById('mealName');
-  const mealSelect = document.getElementById('mealSelect');
-  const loadMealBtn = document.getElementById('loadMealBtn');
-  const deleteMealBtn = document.getElementById('deleteMealBtn');
+
+  const listEl = document.getElementById('list');
+
+  const totalProteinEl = document.getElementById('totalProtein');
+  const totalCarbsEl = document.getElementById('totalCarbs');
+  const totalFatEl = document.getElementById('totalFat');
+
+  const diffProteinEl = document.getElementById('diffProtein');
+  const diffCarbsEl = document.getElementById('diffCarbs');
+  const diffFatEl = document.getElementById('diffFat');
+  const totalsHintEl = document.getElementById('totalsHint');
 
   const targetProteinInput = document.getElementById('targetProtein');
   const targetCarbsInput = document.getElementById('targetCarbs');
   const targetFatInput = document.getElementById('targetFat');
+  const saveTargetsBtn = document.getElementById('saveTargetsBtn');
 
-  const tableBody = document.getElementById('table');
+  const mealNameInput = document.getElementById('mealName');
+  const saveMealBtn = document.getElementById('saveMealBtn');
+  const mealSelect = document.getElementById('mealSelect');
+  const loadMealBtn = document.getElementById('loadMealBtn');
+  const deleteMealBtn = document.getElementById('deleteMealBtn');
 
-  targetProteinInput.value = targets.protein;
-  targetCarbsInput.value = targets.carbs;
-  targetFatInput.value = targets.fat;
+  const clearBtn = document.getElementById('clearBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const resultsEl = document.getElementById('results');
 
   // ----------------------------
-  // Events
+  // Helpers
   // ----------------------------
-  addBtn.addEventListener('click', addIngredient);
-  saveMealBtn.addEventListener('click', saveMeal);
-  loadMealBtn.addEventListener('click', loadMeal);
-  deleteMealBtn.addEventListener('click', deleteMeal);
+  function fmt(n) {
+    const v = Number(n) || 0;
+    return Math.round(v * 10) / 10;
+  }
 
-  // Search food (FIXED: guards + errors so app doesn't "silently die")
-  nameInput.addEventListener("input", async () => {
-    const query = nameInput.value.trim();
+  function sumTotals() {
+    return ingredients.reduce(
+      (acc, item) => {
+        acc.protein += (Number(item.protein) || 0) * (Number(item.qty) || 1);
+        acc.carbs   += (Number(item.carbs) || 0)   * (Number(item.qty) || 1);
+        acc.fat     += (Number(item.fat) || 0)     * (Number(item.qty) || 1);
+        return acc;
+      },
+      { protein: 0, carbs: 0, fat: 0 }
+    );
+  }
 
-    if (query.length < 3) {
-      resultsBox.classList.add("hidden");
+  function updateTotalsUI() {
+    const totals = sumTotals();
+
+    totalProteinEl.textContent = fmt(totals.protein);
+    totalCarbsEl.textContent   = fmt(totals.carbs);
+    totalFatEl.textContent     = fmt(totals.fat);
+
+    const dp = fmt((targets.protein || 0) - totals.protein);
+    const dc = fmt((targets.carbs || 0) - totals.carbs);
+    const df = fmt((targets.fat || 0) - totals.fat);
+
+    diffProteinEl.textContent = (targets.protein ? (dp >= 0 ? `-${dp}` : `+${Math.abs(dp)}`) : "0");
+    diffCarbsEl.textContent   = (targets.carbs ? (dc >= 0 ? `-${dc}` : `+${Math.abs(dc)}`) : "0");
+    diffFatEl.textContent     = (targets.fat ? (df >= 0 ? `-${df}` : `+${Math.abs(df)}`) : "0");
+
+    if (targets.protein || targets.carbs || targets.fat) {
+      totalsHintEl.textContent = "Diff = target − total";
+    } else {
+      totalsHintEl.textContent = "";
+    }
+  }
+
+  function renderList() {
+    listEl.innerHTML = "";
+
+    if (ingredients.length === 0) {
+      listEl.innerHTML = `<div class="text-xs text-gray-400">No ingredients yet.</div>`;
       return;
     }
 
-    try {
-      const response = await fetch("/api/search", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ query })
+    ingredients.forEach((item, idx) => {
+      const row = document.createElement("div");
+      row.className = "border border-white p-2 rounded-lg flex items-center justify-between gap-2";
+
+      const left = document.createElement("div");
+      left.className = "flex-1 min-w-0";
+
+      const title = document.createElement("div");
+      title.className = "text-sm truncate";
+      title.textContent = `${item.name} ×${item.qty}`;
+
+      const meta = document.createElement("div");
+      meta.className = "text-xs text-gray-400";
+      meta.textContent = `P ${fmt(item.protein)}  C ${fmt(item.carbs)}  F ${fmt(item.fat)} (per serving)`;
+
+      left.appendChild(title);
+      left.appendChild(meta);
+
+      const del = document.createElement("button");
+      del.className = "border border-white px-2 py-1 rounded-lg text-xs hover:bg-white hover:text-black transition";
+      del.textContent = "DEL";
+      del.addEventListener("click", () => {
+        ingredients.splice(idx, 1);
+        localStorage.setItem("ingredients", JSON.stringify(ingredients));
+        update();
       });
 
-      let data = null;
-      try { data = await response.json(); } catch { data = null; }
+      row.appendChild(left);
+      row.appendChild(del);
+      listEl.appendChild(row);
+    });
+  }
 
-      if (!response.ok || !data || !Array.isArray(data.foods)) {
-        resultsBox.innerHTML = `<div class="p-2">No results</div>`;
-        resultsBox.classList.remove("hidden");
-        return;
-      }
+  function update() {
+    renderList();
+    updateTotalsUI();
+  }
 
-      resultsBox.innerHTML = "";
-      resultsBox.classList.remove("hidden");
+  // ----------------------------
+  // Targets
+  // ----------------------------
+  function loadTargetsUI() {
+    targetProteinInput.value = targets.protein || "";
+    targetCarbsInput.value   = targets.carbs || "";
+    targetFatInput.value     = targets.fat || "";
+  }
 
-      data.foods.slice(0, 5).forEach(food => {
-        const div = document.createElement("div");
-        div.className = "p-2 border-b border-white cursor-pointer hover:bg-white hover:text-black";
-        div.textContent = food.description;
-        div.onclick = () => selectFood(food.fdcId);
-        resultsBox.appendChild(div);
+  saveTargetsBtn.addEventListener("click", () => {
+    targets = {
+      protein: Number(targetProteinInput.value) || 0,
+      carbs: Number(targetCarbsInput.value) || 0,
+      fat: Number(targetFatInput.value) || 0,
+    };
+    localStorage.setItem("targets", JSON.stringify(targets));
+    update();
+  });
+
+  // ----------------------------
+  // Meals
+  // ----------------------------
+  function populateMealDropdown() {
+    mealSelect.innerHTML = "";
+
+    const keys = Object.keys(meals).sort((a, b) => a.localeCompare(b));
+    if (keys.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "No saved meals";
+      mealSelect.appendChild(opt);
+      return;
+    }
+
+    keys.forEach((k) => {
+      const opt = document.createElement("option");
+      opt.value = k;
+      opt.textContent = k;
+      mealSelect.appendChild(opt);
+    });
+  }
+
+  saveMealBtn.addEventListener("click", () => {
+    const name = mealNameInput.value.trim();
+    if (!name) return alert("Enter a meal name.");
+
+    meals[name] = JSON.parse(JSON.stringify(ingredients));
+    localStorage.setItem("meals", JSON.stringify(meals));
+    populateMealDropdown();
+    mealSelect.value = name;
+    mealNameInput.value = "";
+    alert("Meal saved.");
+  });
+
+  loadMealBtn.addEventListener("click", () => {
+    const key = mealSelect.value;
+    if (!key || !meals[key]) return;
+
+    ingredients = JSON.parse(JSON.stringify(meals[key]));
+    localStorage.setItem("ingredients", JSON.stringify(ingredients));
+    update();
+  });
+
+  deleteMealBtn.addEventListener("click", () => {
+    const key = mealSelect.value;
+    if (!key || !meals[key]) return;
+
+    if (!confirm(`Delete meal "${key}"?`)) return;
+    delete meals[key];
+    localStorage.setItem("meals", JSON.stringify(meals));
+    populateMealDropdown();
+  });
+
+  // ----------------------------
+  // Add ingredient
+  // ----------------------------
+  function clearInputs() {
+    nameInput.value = "";
+    proteinInput.value = "";
+    carbsInput.value = "";
+    fatInput.value = "";
+    qtyInput.value = 1;
+  }
+
+  addBtn.addEventListener("click", () => {
+    const name = nameInput.value.trim();
+    if (!name) return alert("Ingredient name required.");
+
+    const protein = Number(proteinInput.value) || 0;
+    const carbs = Number(carbsInput.value) || 0;
+    const fat = Number(fatInput.value) || 0;
+    const qty = Number(qtyInput.value) || 1;
+
+    ingredients.push({ name, protein, carbs, fat, qty });
+    localStorage.setItem("ingredients", JSON.stringify(ingredients));
+
+    clearInputs();
+    update();
+  });
+
+  // ----------------------------
+  // Simple Autocomplete (local)
+  // ----------------------------
+  function showResults(items) {
+    resultsEl.innerHTML = "";
+    if (!items.length) {
+      resultsEl.classList.add("hidden");
+      return;
+    }
+
+    items.forEach((item) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "w-full text-left p-2 border-b border-white hover:bg-white hover:text-black transition text-sm";
+      btn.textContent = item.name;
+      btn.addEventListener("click", () => {
+        nameInput.value = item.name;
+        proteinInput.value = item.protein;
+        carbsInput.value = item.carbs;
+        fatInput.value = item.fat;
+        qtyInput.value = 1;
+        resultsEl.classList.add("hidden");
       });
-    } catch (err) {
-      console.error(err);
-      resultsBox.innerHTML = `<div class="p-2">Search error</div>`;
-      resultsBox.classList.remove("hidden");
+      resultsEl.appendChild(btn);
+    });
+
+    resultsEl.classList.remove("hidden");
+  }
+
+  function ingredientLibrary() {
+    // Uses your saved meals as a lightweight library of ingredients.
+    // You can expand this later with API search.
+    const lib = [];
+    Object.values(meals).forEach((arr) => {
+      arr.forEach((i) => {
+        if (!lib.find(x => x.name.toLowerCase() === i.name.toLowerCase())) {
+          lib.push({ name: i.name, protein: i.protein, carbs: i.carbs, fat: i.fat });
+        }
+      });
+    });
+    return lib;
+  }
+
+  nameInput.addEventListener("input", () => {
+    const q = nameInput.value.trim().toLowerCase();
+    if (!q) {
+      resultsEl.classList.add("hidden");
+      return;
+    }
+
+    const lib = ingredientLibrary();
+    const hits = lib.filter(i => i.name.toLowerCase().includes(q)).slice(0, 8);
+    showResults(hits);
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!resultsEl.contains(e.target) && e.target !== nameInput) {
+      resultsEl.classList.add("hidden");
     }
   });
 
   // ----------------------------
-  // Persistence
+  // Clear / Reset
   // ----------------------------
-  function saveAll() {
-    localStorage.setItem('ingredients', JSON.stringify(ingredients));
-    localStorage.setItem('targets', JSON.stringify(targets));
-  }
-
-  // ----------------------------
-  // Core actions
-  // ----------------------------
-  function addIngredient() {
-    if (!nameInput.value.trim()) return;
-
-    ingredients.push({
-      name: nameInput.value.toUpperCase(),
-      quantity: Number(quantityInput.value) || 1,
-      protein: Number(proteinInput.value) || 0,
-      carbs: Number(carbsInput.value) || 0,
-      fat: Number(fatInput.value) || 0
-    });
-
-    nameInput.value = '';
-    proteinInput.value = '';
-    carbsInput.value = '';
-    fatInput.value = '';
-    quantityInput.value = 1;
-
-    resultsBox.classList.add("hidden");
+  clearBtn.addEventListener("click", () => {
+    if (!confirm("Clear all ingredients?")) return;
+    ingredients = [];
+    localStorage.setItem("ingredients", JSON.stringify(ingredients));
     update();
-  }
+  });
 
-  function saveMeal() {
-    const mealName = mealNameInput.value.trim();
-    if (!mealName) { alert("Enter meal name"); return; }
-    if (ingredients.length === 0) { alert("No ingredients to save"); return; }
-
-    const meal = {
-      name: mealName.toUpperCase(),
-      ingredients: [...ingredients],
-      date: new Date().toISOString()
-    };
-
-    meals.push(meal);
-    localStorage.setItem("meals", JSON.stringify(meals));
-    populateMealDropdown();
-    alert("Meal saved");
-    mealNameInput.value = "";
-  }
-
-  function populateMealDropdown() {
-    mealSelect.innerHTML = '<option value="">LOAD MEAL</option>';
-
-    meals.forEach((meal, index) => {
-      const option = document.createElement("option");
-      option.value = index;
-      option.textContent =
-        meal.name + " (" + new Date(meal.date).toLocaleDateString() + ")";
-      mealSelect.appendChild(option);
-    });
-  }
-
-  function loadMeal() {
-    const index = mealSelect.value;
-    if (index === "") return;
-
-    const y = window.scrollY;
-    ingredients = [...meals[index].ingredients];
-    update();
-
-    mealSelect.blur();
-    requestAnimationFrame(() => window.scrollTo({ top: y }));
-  }
-
-  function deleteMeal() {
-    const index = mealSelect.value;
-    if (index === "") return;
-    if (!confirm("Delete this meal?")) return;
-
-    const y = window.scrollY;
-    meals.splice(index, 1);
-    localStorage.setItem("meals", JSON.stringify(meals));
-    populateMealDropdown();
-
-    mealSelect.value = "";
-    mealSelect.blur();
-    requestAnimationFrame(() => window.scrollTo({ top: y }));
-  }
-
-  function removeIngredient(index) {
-    ingredients.splice(index, 1);
-    update();
-  }
-
-  function editIngredient(index) {
-    const i = ingredients[index];
-    nameInput.value = i.name;
-    proteinInput.value = i.protein;
-    carbsInput.value = i.carbs;
-    fatInput.value = i.fat;
-    quantityInput.value = i.quantity;
-    ingredients.splice(index, 1);
-    update();
-  }
-
-  // ----------------------------
-  // Rendering + totals
-  // ----------------------------
-  function renderTable() {
-    tableBody.innerHTML = '';
-    ingredients.forEach((i, idx) => {
-      const totalP = i.protein * i.quantity;
-      const totalC = i.carbs * i.quantity;
-      const totalF = i.fat * i.quantity;
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="border border-white p-2">${i.name}</td>
-        <td class="border border-white p-2 text-center">${i.quantity}</td>
-        <td class="border border-white p-2 text-center">${totalP}</td>
-        <td class="border border-white p-2 text-center">${totalC}</td>
-        <td class="border border-white p-2 text-center">${totalF}</td>
-        <td class="border border-white p-2 text-center">
-          <button class="mm-btn border border-white px-3 py-1 rounded-md" onclick="editIngredient(${idx})">E</button>
-          <span class="px-1">|</span>
-          <button class="mm-btn border border-white px-3 py-1 rounded-md" onclick="removeIngredient(${idx})">X</button>
-        </td>
-      `;
-      tableBody.appendChild(row);
-    });
-  }
-
-  function calculateTotals() {
-    const totals = ingredients.reduce((a, i) => {
-      a.protein += i.protein * i.quantity;
-      a.carbs += i.carbs * i.quantity;
-      a.fat += i.fat * i.quantity;
-      return a;
-    }, { protein: 0, carbs: 0, fat: 0 });
-
-    const calories = (totals.protein * 4) + (totals.carbs * 4) + (totals.fat * 9);
-
-    targets.protein = Number(targetProteinInput.value) || 0;
-    targets.carbs = Number(targetCarbsInput.value) || 0;
-    targets.fat = Number(targetFatInput.value) || 0;
-
-    document.getElementById('totalProtein').textContent = totals.protein;
-    document.getElementById('totalCarbs').textContent = totals.carbs;
-    document.getElementById('totalFat').textContent = totals.fat;
-    document.getElementById('totalCalories').textContent = calories.toFixed(0);
-
-    document.getElementById('proteinBar').style.width =
-      targets.protein ? Math.min(100, totals.protein / targets.protein * 100) + '%' : '0%';
-
-    document.getElementById('carbsBar').style.width =
-      targets.carbs ? Math.min(100, totals.carbs / targets.carbs * 100) + '%' : '0%';
-
-    document.getElementById('fatBar').style.width =
-      targets.fat ? Math.min(100, totals.fat / targets.fat * 100) + '%' : '0%';
-
-    const proteinPercent = targets.protein ? totals.protein / targets.protein : 0;
-    const carbsPercent = targets.carbs ? totals.carbs / targets.carbs : 0;
-    const fatPercent = targets.fat ? totals.fat / targets.fat : 0;
-
-    setBarColor("proteinBar", proteinPercent, "blue");
-    setBarColor("carbsBar", carbsPercent, "amber");
-    setBarColor("fatBar", fatPercent, "purple");
-  }
-
-  function update() {
-    renderTable();
-    calculateTotals();
-    saveAll();
-  }
-
-  function setBarColor(id, percent, color) {
-    const bar = document.getElementById(id);
-
-    bar.classList.remove(
-      "bg-blue-400","bg-amber-400","bg-purple-400",
-      "bg-green-400","bg-red-400"
-    );
-
-    if (percent > 1.1) bar.classList.add("bg-red-400");
-    else if (percent >= 0.95) bar.classList.add("bg-green-400");
-    else bar.classList.add(`bg-${color}-400`);
-  }
-
-  // ----------------------------
-  // Food select (FIXED: supports fat vs fats, better error handling)
-  // ----------------------------
-  async function selectFood(fdcId) {
-    try {
-      const response = await fetch(`/api/food?id=${encodeURIComponent(fdcId)}`);
-      const data = await response.json();
-
-      if (!response.ok || data?.error) {
-        alert(data?.error || "Failed to fetch food details");
-        return;
-      }
-
-      proteinInput.value = data.protein ?? 0;
-      carbsInput.value = data.carbs ?? 0;
-
-      // Robust: some versions return "fat", some "fats"
-      const fatVal = (data.fats ?? data.fat ?? 0);
-      fatInput.value = fatVal;
-
-      nameInput.value = (data.name ?? "").toUpperCase();
-      resultsBox.classList.add("hidden");
-    } catch (err) {
-      console.error(err);
-      alert("Food lookup failed");
-    }
-  }
-
-  // ----------------------------
-  // Reset (keeps saved meals)
-  // ----------------------------
-  const resetBtn = document.getElementById("resetBtn");
   resetBtn.addEventListener("click", () => {
     if (!confirm("Reset all current data (ingredients and targets)? Saved meals will remain.")) return;
 
@@ -509,7 +555,287 @@
     update();
   });
 
+
+  // ----------------------------
+  // Scanner (Barcode + OCR)
+  // ----------------------------
+  const scanBtn = document.getElementById("scanBtn");
+  const scanModal = document.getElementById("scanModal");
+  const scanClose = document.getElementById("scanClose");
+  const scanVideo = document.getElementById("scanVideo");
+  const scanAction = document.getElementById("scanAction");
+  const scanUploadBtn = document.getElementById("scanUploadBtn");
+  const scanPhotoInput = document.getElementById("scanPhotoInput");
+  const scanStatus = document.getElementById("scanStatus");
+  const scanCanvas = document.getElementById("scanCanvas");
+  const tabBarcode = document.getElementById("tabBarcode");
+  const tabLabel = document.getElementById("tabLabel");
+
+  let scanStream = null;
+  let mode = "barcode"; // "barcode" | "ocr"
+  let zxingReader = null;
+  let barcodeActive = false;
+  let ocrBusy = false;
+
+  function setScanStatus(msg) { if (scanStatus) scanStatus.textContent = msg; }
+
+  async function startScanCamera() {
+    if (scanStream) return;
+    try {
+      scanStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false
+      });
+      scanVideo.srcObject = scanStream;
+      await scanVideo.play();
+    } catch (e) {
+      console.error(e);
+      setScanStatus("Camera blocked. Switch to LABEL (OCR) and use UPLOAD.");
+    }
+  }
+
+  function stopScanCamera() {
+    if (!scanStream) return;
+    scanStream.getTracks().forEach(t => t.stop());
+    scanStream = null;
+    if (scanVideo) scanVideo.srcObject = null;
+  }
+
+  function openScanModal() {
+    if (!scanModal) return;
+    scanModal.classList.remove("hidden");
+    setScanMode("barcode");
+    startScanCamera();
+  }
+
+  function closeScanModal() {
+    if (!scanModal) return;
+    scanModal.classList.add("hidden");
+    stopBarcodeScan();
+    stopScanCamera();
+    setScanStatus("Closed.");
+  }
+
+  function setScanMode(next) {
+    mode = next;
+
+    if (mode === "barcode") {
+      scanUploadBtn?.classList.add("hidden");
+      if (scanAction) scanAction.textContent = "START BARCODE SCAN";
+      setScanStatus("Barcode mode: point at UPC/EAN and hold steady.");
+    } else {
+      stopBarcodeScan();
+      scanUploadBtn?.classList.remove("hidden");
+      if (scanAction) scanAction.textContent = "CAPTURE (OCR)";
+      setScanStatus("OCR mode: fill label in frame, then CAPTURE or UPLOAD.");
+    }
+  }
+
+  // ---- Open Food Facts (barcode -> product -> macros)
+  async function fetchMacrosFromBarcode(code) {
+    const url = `https://world.openfoodfacts.org/api/v0/product/${encodeURIComponent(code)}.json`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data || data.status !== 1 || !data.product) return { ok: false };
+
+    const p = data.product;
+    const n = p.nutriments || {};
+    const per = (p.nutrition_data_per === "serving") ? "serving" : "100g";
+
+    const protein = (per === "serving" && n.proteins_serving != null) ? n.proteins_serving : n.proteins_100g;
+    const carbs   = (per === "serving" && n.carbohydrates_serving != null) ? n.carbohydrates_serving : n.carbohydrates_100g;
+    const fat     = (per === "serving" && n.fat_serving != null) ? n.fat_serving : n.fat_100g;
+
+    return {
+      ok: true,
+      name: p.product_name || p.generic_name || "",
+      per,
+      servingSize: p.serving_size || "",
+      protein,
+      carbs,
+      fat
+    };
+  }
+
+  // ---- Barcode scanning via ZXing
+  async function startBarcodeScan() {
+    if (barcodeActive) return;
+    barcodeActive = true;
+
+    await startScanCamera();
+
+    try {
+      if (!zxingReader) {
+        // UMD bundle exposes ZXingBrowser global
+        zxingReader = new ZXingBrowser.BrowserMultiFormatReader();
+      }
+
+      setScanStatus("Scanning… hold steady on the barcode.");
+
+      zxingReader.decodeFromVideoElementContinuously(scanVideo, async (result) => {
+        if (!barcodeActive) return;
+        if (!result) return;
+
+        const code = result.getText();
+        barcodeActive = false;
+
+        setScanStatus(`Found: ${code}. Looking up…`);
+        stopBarcodeScan();
+
+        try {
+          const r = await fetchMacrosFromBarcode(code);
+          if (!r.ok) {
+            setScanStatus("Barcode not found. Switch to LABEL (OCR).");
+            return;
+          }
+
+          if (r.name) nameInput.value = r.name;
+
+          if (r.protein != null) proteinInput.value = Math.round(Number(r.protein));
+          if (r.carbs != null) carbsInput.value = Math.round(Number(r.carbs));
+          if (r.fat != null) fatInput.value = Math.round(Number(r.fat));
+
+          const extra = (r.per === "serving" && r.servingSize) ? ` (per serving: ${r.servingSize})` : " (per 100g)";
+          setScanStatus(`Filled macros from Open Food Facts${extra}.`);
+        } catch (e) {
+          console.error(e);
+          setScanStatus("Lookup failed. Try again or use LABEL (OCR).");
+        }
+      });
+    } catch (e) {
+      console.error(e);
+      setScanStatus("Barcode scan failed. Use LABEL (OCR).");
+      barcodeActive = false;
+    }
+  }
+
+  function stopBarcodeScan() {
+    barcodeActive = false;
+    try { zxingReader?.reset(); } catch {}
+  }
+
+  // ---- OCR (label -> macros)
+  function drawVideoToCanvas() {
+    const w = scanVideo.videoWidth || 1280;
+    const h = scanVideo.videoHeight || 720;
+    scanCanvas.width = w;
+    scanCanvas.height = h;
+    scanCanvas.getContext("2d").drawImage(scanVideo, 0, 0, w, h);
+  }
+
+  function matchGram(text, regex) {
+    const m = text.match(regex);
+    if (!m) return null;
+    for (let i = 1; i < m.length; i++) {
+      const v = parseFloat(m[i]);
+      if (!Number.isNaN(v)) return v;
+    }
+    return null;
+  }
+
+  function extractMacrosFromText(raw) {
+    const t = (raw || "")
+      .replace(/\u00A0/g, " ")
+      .replace(/[|]/g, " ")
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+
+    const protein =
+      matchGram(t, /(protein)\s*([0-9]+(?:\.[0-9]+)?)\s*g/) ??
+      matchGram(t, /([0-9]+(?:\.[0-9]+)?)\s*g\s*(protein)/);
+
+    const fat =
+      matchGram(t, /(total fat|fat)\s*([0-9]+(?:\.[0-9]+)?)\s*g/) ??
+      matchGram(t, /([0-9]+(?:\.[0-9]+)?)\s*g\s*(total fat|fat)/);
+
+    const carbs =
+      matchGram(t, /(total carbohydrate|total carbs|carbohydrate|carbs)\s*([0-9]+(?:\.[0-9]+)?)\s*g/) ??
+      matchGram(t, /([0-9]+(?:\.[0-9]+)?)\s*g\s*(total carbohydrate|carbohydrate|carbs)/);
+
+    return { protein, carbs, fat };
+  }
+
+  async function runOCR() {
+    if (ocrBusy) return;
+    ocrBusy = true;
+
+    try {
+      setScanStatus("OCR reading…");
+      const worker = await Tesseract.createWorker("eng");
+      const { data } = await worker.recognize(scanCanvas);
+      await worker.terminate();
+
+      const macros = extractMacrosFromText(data?.text || "");
+
+      if (macros.protein != null) proteinInput.value = Math.round(macros.protein);
+      if (macros.carbs != null) carbsInput.value = Math.round(macros.carbs);
+      if (macros.fat != null) fatInput.value = Math.round(macros.fat);
+
+      if (macros.protein == null && macros.carbs == null && macros.fat == null) {
+        setScanStatus("Couldn’t detect macros. Try closer/brighter, or UPLOAD a clearer photo.");
+        return;
+      }
+
+      setScanStatus("Filled macros from OCR ✓");
+    } catch (e) {
+      console.error(e);
+      setScanStatus("OCR failed. Try UPLOAD or re-capture.");
+    } finally {
+      ocrBusy = false;
+    }
+  }
+
+  async function loadImageFileToCanvas(file) {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+
+    scanCanvas.width = img.naturalWidth;
+    scanCanvas.height = img.naturalHeight;
+    scanCanvas.getContext("2d").drawImage(img, 0, 0);
+
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- UI wiring
+  scanBtn?.addEventListener("click", openScanModal);
+  scanClose?.addEventListener("click", closeScanModal);
+
+  tabBarcode?.addEventListener("click", () => setScanMode("barcode"));
+  tabLabel?.addEventListener("click", () => setScanMode("ocr"));
+
+  scanAction?.addEventListener("click", async () => {
+    if (mode === "barcode") {
+      await startBarcodeScan();
+    } else {
+      await startScanCamera();
+      drawVideoToCanvas();
+      stopScanCamera(); // frees camera during OCR (helps iOS)
+      await runOCR();
+    }
+  });
+
+  scanUploadBtn?.addEventListener("click", () => scanPhotoInput?.click());
+
+  scanPhotoInput?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setScanStatus("Loading photo…");
+      await loadImageFileToCanvas(file);
+      await runOCR();
+    } catch (err) {
+      console.error(err);
+      setScanStatus("Upload failed. Try a clearer image.");
+    } finally {
+      scanPhotoInput.value = "";
+    }
+  });
+
   // Init
+  loadTargetsUI();
   update();
   populateMealDropdown();
 </script>
@@ -522,5 +848,6 @@
     });
   }
 </script>
+
 </body>
 </html>
