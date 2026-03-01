@@ -7,130 +7,76 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* ---------- Background stack ---------- */
+    /* Background container */
     #bgArt {
       position: fixed;
       inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-
-    /* Center the pixel art image */
-    #bgArt .bgCenter {
-      position: absolute;
-      inset: 0;
       display: grid;
       place-items: center;
+      pointer-events: none;
+      z-index: 0;
     }
 
-    /* ✅ Zoom in/out + fade in/out (2 cycles then stop) + glitch flicker */
+    /* Cinematic zoom animation */
     #bgArt img {
       width: min(620px, 92vw);
       height: auto;
       opacity: 0;
       image-rendering: pixelated;
       transform-origin: center;
-      animation: zoomPulse 8s ease-in-out 2 forwards, glitchFlicker 3.4s steps(1,end) infinite;
-      filter: saturate(1.1) contrast(1.05);
-      will-change: transform, opacity, filter;
+      animation: zoomPulse 10s cubic-bezier(0.4, 0.0, 0.2, 1) 2 forwards;
     }
 
-    /* Zoom in → hold → zoom out while fading */
     @keyframes zoomPulse {
       0% {
         opacity: 0;
-        transform: scale(0.7);
-      }
-      15% {
-        opacity: 0.6;
-        transform: scale(1);
-      }
-      45% {
-        opacity: 0.6;
-        transform: scale(1.05);
-      }
-      70% {
-        opacity: 0.3;
-        transform: scale(0.85);
-      }
-      100% {
-        opacity: 0;
         transform: scale(0.6);
       }
+
+      18% {
+        opacity: 0.75;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.75;
+        transform: scale(1.08);
+      }
+
+      75% {
+        opacity: 0.35;
+        transform: scale(0.9);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(0.65);
+      }
     }
 
-    /* Glitch flicker */
-    @keyframes glitchFlicker {
-      0%, 85%, 100% { transform: translate(0,0) scale(1); filter: saturate(1.1) contrast(1.05); }
-      86% { transform: translate(-2px, 1px) scale(1.01); filter: saturate(1.35) contrast(1.2) hue-rotate(8deg); }
-      88% { transform: translate(3px, -1px) scale(1.01); filter: saturate(1.25) contrast(1.35) hue-rotate(-10deg); }
-      90% { transform: translate(-1px, 0px) scale(1.00); filter: saturate(1.1) contrast(1.05); }
-      94% { transform: translate(2px, 2px) scale(1.02); filter: saturate(1.4) contrast(1.25) hue-rotate(14deg); }
-      95% { transform: translate(0,0) scale(1.00); filter: saturate(1.1) contrast(1.05); }
-    }
-
-    /* Optional scanlines (very light) */
-    #bgArt::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          rgba(255,255,255,0.03) 0px,
-          rgba(255,255,255,0.03) 1px,
-          rgba(0,0,0,0) 3px,
-          rgba(0,0,0,0) 6px
-        );
-      mix-blend-mode: overlay;
-      opacity: 0.14;
-      animation: scanShift 6s linear infinite;
-    }
-
-    @keyframes scanShift {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(18px); }
-    }
-
-    /* Canvas for real particle system */
-    #dustCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 1;
-    }
-
-    /* Foreground card stays transparent */
-    .card {
-      position: relative;
-      z-index: 10;
-    }
-
-    /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce) {
-      #bgArt img { animation: none !important; opacity: 0.35; transform: scale(1); }
-      #bgArt::before { animation: none !important; }
+      #bgArt img {
+        animation: none;
+        opacity: 0.4;
+        transform: scale(1);
+      }
     }
   </style>
 </head>
 
 <body class="bg-black text-white min-h-screen font-mono flex items-center justify-center p-6">
 
-  <!-- Background -->
+  <!-- Background Image -->
   <div id="bgArt">
-    <canvas id="dustCanvas"></canvas>
-
-    <div class="bgCenter">
-      <!-- ✅ Keep your filename -->
-      <img id="mealImg" src="/mcdonalds-pixel.jpg" alt="" aria-hidden="true" />
-    </div>
+    <img src="/mcdonalds-pixel.jpg" alt="" />
   </div>
 
-  <!-- Foreground content (Safari only / reduced text) -->
-  <div class="card max-w-xl w-full border border-white p-8 space-y-6">
-    <h1 class="text-2xl tracking-widest text-center">INSTALL MACRO MATRIX</h1>
+  <!-- Foreground Content -->
+  <div class="relative z-10 max-w-xl w-full border border-white p-8 space-y-6">
+
+    <h1 class="text-2xl tracking-widest text-center">
+      INSTALL MACRO MATRIX
+    </h1>
 
     <p class="text-gray-400 text-center">
       iPhone setup (Safari only).
@@ -143,9 +89,6 @@
         <li>Select <strong>Add to Home Screen</strong></li>
         <li>Tap Add</li>
       </ol>
-      <p class="text-xs text-gray-500 mt-3">
-        If you’re in an in-app browser (Instagram, etc.), tap “Open in Safari”.
-      </p>
     </div>
 
     <div class="text-center pt-2">
@@ -153,145 +96,8 @@
         ← Back to Macro Matrix
       </a>
     </div>
+
   </div>
 
-  <script>
-    // ========= Real Pixel Particle System (Canvas) =========
-    // Spawns pixel dust from the image area. Runs only for the duration of the 2 zoom cycles (16s).
-    (function () {
-      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      const canvas = document.getElementById('dustCanvas');
-      const ctx = canvas.getContext('2d', { alpha: true });
-      const img = document.getElementById('mealImg');
-
-      const PALETTE = [
-        [250, 204, 21],   // fries yellow
-        [239, 68, 68],    // red
-        [220, 38, 38],    // deep red
-        [34, 197, 94],    // green
-        [249, 115, 22],   // orange
-        [255, 255, 255],  // white
-      ];
-
-      let W = 0, H = 0, DPR = 1;
-      function resize() {
-        DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
-        W = canvas.clientWidth = window.innerWidth;
-        H = canvas.clientHeight = window.innerHeight;
-        canvas.width = W * DPR;
-        canvas.height = H * DPR;
-        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      }
-      resize();
-      window.addEventListener('resize', resize);
-
-      const particles = [];
-      const MAX = 220;
-
-      function rand(min, max) { return Math.random() * (max - min) + min; }
-      function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
-
-      function getImageRect() {
-        const r = img.getBoundingClientRect();
-        return { x: r.left, y: r.top, w: r.width, h: r.height };
-      }
-
-      function spawn(n = 6) {
-        const r = getImageRect();
-        if (!r.w || !r.h) return;
-
-        for (let i = 0; i < n; i++) {
-          if (particles.length >= MAX) break;
-
-          const color = pick(PALETTE);
-          const size = pick([2, 3, 4, 5]);
-          const x = rand(r.x + r.w * 0.18, r.x + r.w * 0.82);
-          const y = rand(r.y + r.h * 0.45, r.y + r.h * 0.95);
-
-          particles.push({
-            x, y,
-            vx: rand(-0.18, 0.18),
-            vy: rand(-0.95, -0.45),
-            life: rand(900, 1900),
-            age: 0,
-            size,
-            r: color[0], g: color[1], b: color[2],
-            a: rand(0.22, 0.65),
-            drift: rand(0.6, 1.6)
-          });
-        }
-      }
-
-      function glitchBurst() {
-        spawn(14);
-      }
-
-      // zoomPulse is 8s and repeats 2 times => total 16s
-      const TOTAL_MS = 16000;
-
-      const start = performance.now();
-      let lastT = start;
-
-      // Glitch burst cadence aligned to glitchFlicker duration
-      const glitchInterval = window.setInterval(() => {
-        const elapsed = performance.now() - start;
-        if (elapsed <= TOTAL_MS && !prefersReduced) glitchBurst();
-        else clearInterval(glitchInterval);
-      }, 3400);
-
-      function step(t) {
-        const dt = Math.min(40, t - lastT);
-        lastT = t;
-
-        ctx.clearRect(0, 0, W, H);
-
-        const elapsed = t - start;
-        const active = elapsed <= TOTAL_MS;
-
-        if (!prefersReduced && active) {
-          // Sync spawn to 8s phase for nicer timing
-          const phase = (elapsed % 8000) / 8000; // 0..1
-          const base = 2;
-
-          // More particles near peak visibility (around 15% -> 60% of the cycle)
-          const intensity = (phase > 0.10 && phase < 0.65) ? 4 : 2;
-          spawn(base + intensity);
-        }
-
-        // Draw particles
-        for (let i = particles.length - 1; i >= 0; i--) {
-          const p = particles[i];
-          p.age += dt;
-
-          p.x += p.vx * dt * p.drift + Math.sin((t + i * 13) * 0.006) * 0.08;
-          p.y += p.vy * dt * p.drift;
-
-          const k = p.age / p.life;
-          let alpha = p.a;
-          if (k < 0.12) alpha *= (k / 0.12);
-          else if (k > 0.72) alpha *= (1 - (k - 0.72) / 0.28);
-
-          const px = Math.round(p.x);
-          const py = Math.round(p.y);
-
-          ctx.fillStyle = `rgba(${p.r}, ${p.g}, ${p.b}, ${Math.max(0, alpha)})`;
-          ctx.fillRect(px, py, p.size, p.size);
-
-          if (p.age >= p.life || p.y < -20 || p.x < -40 || p.x > W + 40) {
-            particles.splice(i, 1);
-          }
-        }
-
-        requestAnimationFrame(step);
-      }
-
-      img.addEventListener('load', () => {
-        if (!prefersReduced) spawn(28);
-      });
-
-      requestAnimationFrame(step);
-    })();
-  </script>
 </body>
 </html>
