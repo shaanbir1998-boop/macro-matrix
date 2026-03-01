@@ -212,7 +212,7 @@
         <button id="scanTabOCR" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs flex-1">LABEL (OCR)</button>
       </div>
 
-      <video id="scanVideo" playsinline autoplay class="w-full border border-white"></video>
+      <video id="scanVideo" playsinline autoplay muted class="w-full border border-white"></video>
 
       <div class="flex gap-2 mt-2">
         <button id="scanActionBtn" class="border border-white px-3 py-2 hover:bg-white hover:text-black transition text-xs flex-1">
@@ -577,16 +577,36 @@
 
   function setScanStatus(msg) { if (scanStatus) scanStatus.textContent = msg; }
 
-  async function startScanCamera() {
+  
+  async function tryEnableTorch(stream, on = true) {
+    const track = stream?.getVideoTracks?.()[0];
+    if (!track) return;
+
+    const caps = track.getCapabilities?.();
+    if (!caps?.torch) return;
+
+    try {
+      await track.applyConstraints({ advanced: [{ torch: on }] });
+    } catch {}
+  }
+
+async function startScanCamera() {
     if (scanStream) return;
     try {
       scanStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30 }
+        },
         audio: false
       });
       scanVideo.srcObject = scanStream;
       await scanVideo.play();
-    } catch (e) {
+    
+      await tryEnableTorch(scanStream, true);
+} catch (e) {
       console.error(e);
       setScanStatus("Camera blocked. Use UPLOAD in OCR mode.");
     }
@@ -748,13 +768,36 @@
     return { protein, carbs, fat };
   }
 
-  async function runOCRFromCanvas() {
+  
+  function cropCenterCanvas(scale = 0.65) {
+    const src = scanCanvas;
+    const sw = src.width, sh = src.height;
+    if (!sw || !sh) return;
+
+    const cw = Math.max(1, Math.round(sw * scale));
+    const ch = Math.max(1, Math.round(sh * scale));
+    const sx = Math.max(0, Math.round((sw - cw) / 2));
+    const sy = Math.max(0, Math.round((sh - ch) / 2));
+
+    const temp = document.createElement("canvas");
+    temp.width = cw;
+    temp.height = ch;
+    temp.getContext("2d").drawImage(src, sx, sy, cw, ch, 0, 0, cw, ch);
+
+    src.width = cw;
+    src.height = ch;
+    src.getContext("2d").drawImage(temp, 0, 0);
+  }
+
+async function runOCRFromCanvas() {
     if (ocrBusy) return;
     ocrBusy = true;
 
     try {
       setScanStatus("OCR reading…");
-      const worker = await Tesseract.createWorker("eng");
+      
+      cropCenterCanvas(0.65);
+const worker = await Tesseract.createWorker("eng");
       const { data } = await worker.recognize(scanCanvas);
       await worker.terminate();
 
@@ -778,9 +821,9 @@
     }
   }
 
-  async function loadImageFileToCanvas(file) {
+  async function loadImageFileToCanvas(fileOrBlob) {
     const img = new Image();
-    const url = URL.createObjectURL(file);
+    const url = URL.createObjectURL(fileOrBlob);
     await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
 
     scanCanvas.width = img.naturalWidth;
@@ -801,8 +844,23 @@
       await startBarcodeScan();
     } else {
       await startScanCamera();
-      drawVideoToCanvas();
-      stopScanCamera(); // helps iOS
+
+      const track = scanStream?.getVideoTracks?.()[0];
+
+      if (track && window.ImageCapture) {
+        try {
+          const imageCapture = new ImageCapture(track);
+          const blob = await imageCapture.takePhoto(); // higher-res still
+          await loadImageFileToCanvas(blob);
+        } catch (err) {
+          // fallback to a video frame
+          drawVideoToCanvas();
+        }
+      } else {
+        drawVideoToCanvas();
+      }
+
+      stopScanCamera(); // frees camera during OCR (helps iOS)
       await runOCRFromCanvas();
     }
   });
