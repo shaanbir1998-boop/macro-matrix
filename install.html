@@ -19,20 +19,20 @@
       overflow: hidden;
     }
 
-    /* Pixel art */
+    /* Pixel burger */
     #bgArt img {
       width: min(600px, 90vw);
       height: auto;
-      opacity: 0.35; /* increased so you can see it */
+      opacity: 0.4;
       image-rendering: pixelated;
       animation: vanish 8s linear infinite;
       transform-origin: bottom center;
     }
 
-    /* Disappear bottom → top */
+    /* Disappearing animation */
     @keyframes vanish {
       0% {
-        opacity: 0.35;
+        opacity: 0.4;
         clip-path: inset(0 0 0 0);
       }
       70% {
@@ -44,6 +44,32 @@
         clip-path: inset(0 0 100% 0);
       }
     }
+
+    /* Pixel dust container */
+    .dust {
+      position: absolute;
+      bottom: 0;
+      width: 6px;
+      height: 6px;
+      background: #facc15; /* yellow pixel */
+      opacity: 0;
+      animation: floatUp linear infinite;
+    }
+
+    /* Floating animation */
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0);
+        opacity: 0;
+      }
+      15% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-600px);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 
@@ -52,9 +78,19 @@
   <!-- Pixel Background -->
   <div id="bgArt">
     <img src="/mcdonalds-pixel.jpg" alt="" />
+
+    <!-- Pixel Dust Particles -->
+    <div class="dust" style="left: 45%; animation-duration: 6s;"></div>
+    <div class="dust" style="left: 52%; animation-duration: 7s;"></div>
+    <div class="dust" style="left: 48%; animation-duration: 5.5s;"></div>
+    <div class="dust" style="left: 55%; animation-duration: 8s;"></div>
+    <div class="dust" style="left: 50%; animation-duration: 6.5s;"></div>
+    <div class="dust" style="left: 53%; animation-duration: 7.2s;"></div>
+    <div class="dust" style="left: 47%; animation-duration: 6.8s;"></div>
+    <div class="dust" style="left: 58%; animation-duration: 7.8s;"></div>
   </div>
 
-  <!-- Content Card (transparent now) -->
+  <!-- Content -->
   <div class="max-w-xl w-full border border-white p-8 space-y-6 relative z-10">
 
     <h1 class="text-2xl tracking-widest text-center">
