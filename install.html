@@ -15,49 +15,45 @@
       place-items: center;
       pointer-events: none;
       z-index: 0;
+      overflow: hidden;
     }
 
-    /* Cinematic zoom animation */
+    /* Windows 98-ish: crunchy pixels + step-based zoom */
     #bgArt img {
       width: min(620px, 92vw);
       height: auto;
       opacity: 0;
       image-rendering: pixelated;
+
+      /* crisp, “retro monitor” feel */
+      filter: contrast(1.15) saturate(1.05);
+
       transform-origin: center;
-      animation: zoomPulse 10s cubic-bezier(0.4, 0.0, 0.2, 1) 2 forwards;
+      will-change: transform, opacity, filter;
+
+      /* 10s per cycle, 2 cycles, then stop */
+      animation: win98Zoom 10s steps(14, end) 2 forwards;
     }
 
-    @keyframes zoomPulse {
-      0% {
-        opacity: 0;
-        transform: scale(0.6);
-      }
+    /* Appear (zoom in) -> hold -> disappear (zoom out) with “steppy” pixel vibe */
+    @keyframes win98Zoom {
+      0%   { opacity: 0;   transform: scale(0.35); filter: contrast(1.15) saturate(1.05) brightness(0.95); }
+      12%  { opacity: 0.55; transform: scale(0.70); }
+      22%  { opacity: 0.75; transform: scale(0.95); }
+      32%  { opacity: 0.85; transform: scale(1.05); filter: contrast(1.22) saturate(1.08) brightness(1.05); }
 
-      18% {
-        opacity: 0.75;
-        transform: scale(1);
-      }
+      52%  { opacity: 0.85; transform: scale(1.10); }  /* tiny “max” bump */
 
-      50% {
-        opacity: 0.75;
-        transform: scale(1.08);
-      }
-
-      75% {
-        opacity: 0.35;
-        transform: scale(0.9);
-      }
-
-      100% {
-        opacity: 0;
-        transform: scale(0.65);
-      }
+      68%  { opacity: 0.55; transform: scale(0.92); }
+      80%  { opacity: 0.28; transform: scale(0.70); filter: contrast(1.18) saturate(1.05) brightness(0.98); }
+      100% { opacity: 0;   transform: scale(0.42); filter: contrast(1.15) saturate(1.05) brightness(0.95); }
     }
 
+    /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce) {
       #bgArt img {
         animation: none;
-        opacity: 0.4;
+        opacity: 0.35;
         transform: scale(1);
       }
     }
@@ -68,7 +64,7 @@
 
   <!-- Background Image -->
   <div id="bgArt">
-    <img src="/mcdonalds-pixel.jpg" alt="" />
+    <img src="/mcdonalds-pixel.jpg" alt="" aria-hidden="true" />
   </div>
 
   <!-- Foreground Content -->
