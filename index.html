@@ -70,10 +70,157 @@
     .hover\:text-black:hover{ color: var(--mm-stalactite) !important; }
 
     a{ color: var(--mm-stalactite) !important; }
-  </style>
+  
+/* ===== CRT LOGIN (2 ICONS) ===== */
+.mm-modal-wrap{
+  position: fixed; inset: 0; z-index: 9999;
+  display: none; align-items: center; justify-content: center;
+  padding: 18px;
+}
+.mm-modal-wrap.show{ display:flex; }
+.mm-modal-backdrop{ position:absolute; inset:0; background: rgba(0,0,0,0.85); }
+
+.mm-crt{
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  background:#0B0B0B;
+  border:2px solid #2A2A2A;
+  box-shadow: 0 0 0 1px #000 inset, 0 12px 45px rgba(0,0,0,0.65);
+  padding:16px;
+}
+.mm-crt-inner{
+  position: relative;
+  border:1px solid #2A2A2A;
+  background:#0B0B0B;
+  padding:18px 16px 16px;
+  overflow:hidden;
+}
+.mm-crt-inner:before{
+  content:"";
+  position:absolute; inset:0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.05),
+    rgba(255,255,255,0.05) 1px,
+    rgba(0,0,0,0.00) 3px,
+    rgba(0,0,0,0.00) 6px
+  );
+  opacity:0.18;
+  pointer-events:none;
+}
+.mm-crt-title{
+  position:relative;
+  text-align:center;
+  color:#EDEDED;
+  font-size:18px;
+  letter-spacing:0.20em;
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+.mm-crt-input{
+  position:relative;
+  width:100%;
+  padding:12px 12px;
+  background: transparent !important;
+  color:#EDEDED !important;
+  border:1px solid #3A3A3A !important;
+  border-radius:0 !important;
+  font-size:18px;
+  letter-spacing:0.22em;
+  text-transform:uppercase;
+  text-align:center;
+  outline:none;
+  box-shadow:none !important;
+}
+.mm-crt-input:focus{ outline: 1px dashed #EDEDED; outline-offset:3px; }
+.mm-crt-input::placeholder{ color: rgba(237,237,237,0.55); }
+
+.mm-crt-icons{
+  position:relative;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+  margin:16px auto 14px;
+  max-width:360px;
+}
+.mm-crt-icon{
+  background:#0B0B0B;
+  border:1px solid #3A3A3A;
+  padding:10px;
+  border-radius:0;
+  cursor:pointer;
+}
+.mm-crt-icon.selected{ outline:1px dashed #EDEDED; outline-offset:4px; }
+
+.mm-crt-icon img{
+  width:100%;
+  height:120px;
+  object-fit:contain;
+  image-rendering:pixelated;
+  display:block;
+  filter: grayscale(1) contrast(1.05);
+  opacity:0.95;
+}
+.mm-crt-enter{
+  position:relative;
+  width:100%;
+  max-width:260px;
+  margin:0 auto;
+  display:block;
+  padding:10px 14px;
+  background:transparent;
+  color:#EDEDED;
+  border:1px solid #3A3A3A;
+  letter-spacing:0.22em;
+  text-transform:uppercase;
+  border-radius:0;
+  font-size:14px;
+  cursor:pointer;
+}
+.mm-crt-enter:active{ transform: translateY(1px); }
+.mm-crt-err{
+  position:relative;
+  margin-top:10px;
+  text-align:center;
+  color:#EDEDED;
+  opacity:0.85;
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  font-size:12px;
+}
+
+</style>
 </head>
 
 <body class="min-h-screen font-mono p-4">
+
+<!-- CRT LOGIN MODAL (2 ICONS) -->
+<div id="mmProfileModal" class="mm-modal-wrap" aria-hidden="true">
+  <div class="mm-modal-backdrop"></div>
+
+  <div class="mm-crt" role="dialog" aria-modal="true" aria-label="Enter username and choose character">
+    <div class="mm-crt-inner">
+      <div class="mm-crt-title">ENTER USERNAME</div>
+
+      <input id="mmUsername" class="mm-crt-input" placeholder="________" maxlength="16" autocapitalize="off" autocomplete="off" />
+
+      <div class="mm-crt-icons" id="mmAvatarGrid" aria-label="Character select">
+        <button class="mm-crt-icon" type="button" data-id="1" aria-label="Character 1">
+          <img src="/avatars/char-1.jpg" alt="Character 1">
+        </button>
+        <button class="mm-crt-icon" type="button" data-id="2" aria-label="Character 2">
+          <img src="/avatars/char-2.jpg" alt="Character 2">
+        </button>
+      </div>
+
+      <button id="mmProfileSave" class="mm-crt-enter" type="button">ENTER</button>
+      <div id="mmProfileErr" class="mm-crt-err" style="display:none;">ERROR</div>
+    </div>
+  </div>
+</div>
+
+
   <div class="max-w-md mx-auto border border-white p-4 min-h-screen">
     <div class="flex justify-between items-start mb-4">
       <div class="flex items-start gap-3">
@@ -894,6 +1041,80 @@ const worker = await Tesseract.createWorker("eng");
       navigator.serviceWorker.register("/sw.js").catch(console.error);
     });
   }
+</script>
+
+
+<script>
+/* ===== CRT LOGIN (2 ICONS) ===== */
+(() => {
+  const MM_PROFILE_KEY = "mm_profile_v2";
+  const mmProfileModal = document.getElementById("mmProfileModal");
+  const mmAvatarGrid = document.getElementById("mmAvatarGrid");
+  const mmUsername = document.getElementById("mmUsername");
+  const mmProfileSave = document.getElementById("mmProfileSave");
+  const mmProfileErr = document.getElementById("mmProfileErr");
+
+  let mmSelectedAvatarId = null;
+
+  const showErr = (msg) => {
+    if (!mmProfileErr) return;
+    mmProfileErr.style.display = "block";
+    mmProfileErr.textContent = (msg || "ERROR").toUpperCase();
+  };
+  const hideErr = () => {
+    if (!mmProfileErr) return;
+    mmProfileErr.style.display = "none";
+    mmProfileErr.textContent = "ERROR";
+  };
+
+  const openModal = () => {
+    if (!mmProfileModal) return;
+    mmProfileModal.classList.add("show");
+    mmProfileModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeModal = () => {
+    if (!mmProfileModal) return;
+    mmProfileModal.classList.remove("show");
+    mmProfileModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  };
+
+  const getProfile = () => {
+    try { return JSON.parse(localStorage.getItem(MM_PROFILE_KEY) || "null"); }
+    catch { return null; }
+  };
+
+  const setProfile = (p) => localStorage.setItem(MM_PROFILE_KEY, JSON.stringify(p));
+
+  mmAvatarGrid?.addEventListener("click", (e) => {
+    const card = e.target.closest(".mm-crt-icon");
+    if (!card) return;
+    hideErr();
+
+    mmSelectedAvatarId = card.getAttribute("data-id");
+    [...mmAvatarGrid.querySelectorAll(".mm-crt-icon")].forEach(el => el.classList.remove("selected"));
+    card.classList.add("selected");
+  });
+
+  mmProfileSave?.addEventListener("click", () => {
+    hideErr();
+    const username = (mmUsername?.value || "").trim();
+    if (!mmSelectedAvatarId) return showErr("SELECT ICON");
+    if (username.length < 2) return showErr("USERNAME");
+    const safe = username.replace(/[^\w\- ]/g, "").trim();
+    if (safe.length < 2) return showErr("USERNAME");
+
+    setProfile({ username: safe, avatarId: Number(mmSelectedAvatarId), createdAt: new Date().toISOString() });
+    closeModal();
+  });
+
+  window.addEventListener("load", () => {
+    const p = getProfile();
+    if (!p || !p.username || !p.avatarId) openModal();
+  });
+})();
 </script>
 
 </body>
