@@ -1,99 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Install Macro Matrix</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Install Macro Matrix</title>
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
-    /* Background container */
-    #bgArt {
-      position: fixed;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
+<style>
+/* Background */
+#bgArt {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
 
-    /* Windows 98-ish: crunchy pixels + step-based zoom */
-    #bgArt img {
-      width: min(620px, 92vw);
-      height: auto;
-      opacity: 0;
-      image-rendering: pixelated;
+/* Image (Win98 crunchy zoom) */
+#bgArt img {
+  width: min(620px, 92vw);
+  height: auto;
+  opacity: 0;
+  image-rendering: pixelated;
+  transform-origin: center;
+  filter: contrast(1.15) saturate(1.05);
+  animation: win98Zoom 10s steps(14, end) 2 forwards;
+}
 
-      /* crisp, “retro monitor” feel */
-      filter: contrast(1.15) saturate(1.05);
+/* Stepped zoom animation */
+@keyframes win98Zoom {
+  0%   { opacity: 0;   transform: scale(0.35); }
+  15%  { opacity: 0.7; transform: scale(0.75); }
+  30%  { opacity: 0.9; transform: scale(1.05); }
+  55%  { opacity: 0.9; transform: scale(1.1); }
+  75%  { opacity: 0.4; transform: scale(0.85); }
+  100% { opacity: 0;   transform: scale(0.4); }
+}
 
-      transform-origin: center;
-      will-change: transform, opacity, filter;
-
-      /* 10s per cycle, 2 cycles, then stop */
-      animation: win98Zoom 10s steps(14, end) 2 forwards;
-    }
-
-    /* Appear (zoom in) -> hold -> disappear (zoom out) with “steppy” pixel vibe */
-    @keyframes win98Zoom {
-      0%   { opacity: 0;   transform: scale(0.35); filter: contrast(1.15) saturate(1.05) brightness(0.95); }
-      12%  { opacity: 0.55; transform: scale(0.70); }
-      22%  { opacity: 0.75; transform: scale(0.95); }
-      32%  { opacity: 0.85; transform: scale(1.05); filter: contrast(1.22) saturate(1.08) brightness(1.05); }
-
-      52%  { opacity: 0.85; transform: scale(1.10); }  /* tiny “max” bump */
-
-      68%  { opacity: 0.55; transform: scale(0.92); }
-      80%  { opacity: 0.28; transform: scale(0.70); filter: contrast(1.18) saturate(1.05) brightness(0.98); }
-      100% { opacity: 0;   transform: scale(0.42); filter: contrast(1.15) saturate(1.05) brightness(0.95); }
-    }
-
-    /* Respect reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-      #bgArt img {
-        animation: none;
-        opacity: 0.35;
-        transform: scale(1);
-      }
-    }
-  </style>
+/* Canvas for pixel dust */
+#dust {
+  position: absolute;
+  inset: 0;
+}
+</style>
 </head>
 
 <body class="bg-black text-white min-h-screen font-mono flex items-center justify-center p-6">
 
-  <!-- Background Image -->
-  <div id="bgArt">
-    <img src="/mcdonalds-pixel.jpg" alt="" aria-hidden="true" />
+<div id="bgArt">
+  <canvas id="dust"></canvas>
+  <img id="meal" src="/mcdonalds-pixel.jpg" alt="">
+</div>
+
+<div class="relative z-10 max-w-xl w-full border border-white p-8 space-y-6">
+  <h1 class="text-2xl tracking-widest text-center">
+    INSTALL MACRO MATRIX
+  </h1>
+
+  <p class="text-gray-400 text-center">
+    iPhone setup (Safari only).
+  </p>
+
+  <ol class="list-decimal ml-5 text-gray-300 text-sm space-y-1">
+    <li>Open Macro Matrix in Safari</li>
+    <li>Tap the Share icon</li>
+    <li>Select <strong>Add to Home Screen</strong></li>
+    <li>Tap Add</li>
+  </ol>
+
+  <div class="text-center pt-2">
+    <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition">
+      ← Back to Macro Matrix
+    </a>
   </div>
+</div>
 
-  <!-- Foreground Content -->
-  <div class="relative z-10 max-w-xl w-full border border-white p-8 space-y-6">
+<script>
+const canvas = document.getElementById("dust");
+const ctx = canvas.getContext("2d");
+let W, H;
 
-    <h1 class="text-2xl tracking-widest text-center">
-      INSTALL MACRO MATRIX
-    </h1>
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
-    <p class="text-gray-400 text-center">
-      iPhone setup (Safari only).
-    </p>
+/* Retro palette */
+const colors = [
+  "#facc15",  // fries yellow
+  "#ef4444",  // red
+  "#22c55e",  // green
+  "#ffffff"
+];
 
-    <div class="text-sm">
-      <ol class="list-decimal ml-5 space-y-1 text-gray-300">
-        <li>Open Macro Matrix in Safari</li>
-        <li>Tap the Share icon</li>
-        <li>Select <strong>Add to Home Screen</strong></li>
-        <li>Tap Add</li>
-      </ol>
-    </div>
+const particles = [];
+const MAX = 160;   // 👈 increased dust
 
-    <div class="text-center pt-2">
-      <a href="/" class="border border-white px-6 py-3 hover:bg-white hover:text-black transition">
-        ← Back to Macro Matrix
-      </a>
-    </div>
+function spawn() {
+  if (particles.length > MAX) return;
 
-  </div>
+  const size = Math.random() > 0.6 ? 3 : 2;
+
+  particles.push({
+    x: W/2 + (Math.random() - 0.5) * 300,
+    y: H/2 + (Math.random() - 0.5) * 200,
+    vx: (Math.random() - 0.5) * 0.4,
+    vy: -Math.random() * 0.8 - 0.2,
+    size: size,
+    life: 100 + Math.random() * 120,
+    color: colors[Math.floor(Math.random()*colors.length)]
+  });
+}
+
+function update() {
+  ctx.clearRect(0, 0, W, H);
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+
+    ctx.fillStyle = p.color;
+    ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
+
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // continuous spawn
+  spawn();
+  spawn();
+  spawn();
+
+  requestAnimationFrame(update);
+}
+
+update();
+</script>
 
 </body>
 </html>
