@@ -2,202 +2,276 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"> 
-  <meta name="apple-mobile-web-app-capable" content="yes"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Macro Matrix Calculator</title>
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <title>BMR / TDEE</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Prevent iOS zoom on input focus */
+    input, select, button { font-size: 16px; }
+  </style>
 
+  <!-- Macro Matrix Rosy Future Theme -->
   <style>
     :root{
-      --mm-silhouette: #000000;
-      --mm-stalactite: #E6E7E8;
-      --mm-secret:     #A7B0B8;
-      --mm-bluebird:   #F27D9B;
+      --mm-bg: #000000;
+      --mm-text: #E6E7E8;
+      --mm-title: #A7B0B8;
+      --mm-accent: #F27D9B;
     }
 
     body{
-      background: var(--mm-silhouette) !important;
-      color: var(--mm-stalactite) !important;
+      background: var(--mm-bg) !important;
+      color: var(--mm-text) !important;
     }
 
-    .border-white{ border-color: var(--mm-stalactite) !important; }
-    .border{ border-color: var(--mm-stalactite) !important; }
+    .border-white{ border-color: var(--mm-text) !important; }
+    .border{ border-color: var(--mm-text) !important; }
 
-    .text-gray-400, .text-gray-500, .text-gray-300{
-      color: var(--mm-stalactite) !important;
-      opacity: 0.9;
-    }
-
-    #mmTitle{ color: var(--mm-secret) !important; }
+    .mm-title{ color: var(--mm-title) !important; }
 
     input, select{
       background: transparent !important;
-      color: var(--mm-stalactite) !important;
-      border: 1px solid var(--mm-stalactite) !important;
+      color: var(--mm-text) !important;
+      border-color: var(--mm-text) !important;
     }
-
-    input::placeholder{
-      color: rgba(230,231,232,0.65);
-    }
-
+    input::placeholder{ color: rgba(230,231,232,0.65); }
     input:focus, select:focus{
       outline: none;
-      box-shadow: 0 0 0 2px rgba(230,231,232,0.25);
+      box-shadow: 0 0 0 2px rgba(242,125,155,0.25);
     }
 
     .mm-btn{
-      background: var(--mm-bluebird) !important;
-      color: var(--mm-stalactite) !important;
-      border-color: var(--mm-bluebird) !important;
+      background: var(--mm-accent) !important;
+      color: var(--mm-text) !important;
+      border-color: var(--mm-accent) !important;
       transition: opacity 0.15s ease, transform 0.12s ease;
     }
-
     .mm-btn:hover{ opacity: 0.88; }
     .mm-btn:active{ transform: translateY(1px); }
 
-    a{ color: var(--mm-stalactite) !important; }
+    .hover\:bg-white:hover{ background: var(--mm-accent) !important; }
+    .hover\:text-black:hover{ color: var(--mm-text) !important; }
+
+    .text-gray-400, .text-gray-500, .text-gray-300{
+      color: var(--mm-text) !important;
+      opacity: 0.9;
+    }
   </style>
 </head>
 
 <body class="min-h-screen font-mono p-4">
-<div class="max-w-md mx-auto border border-white p-4 min-h-screen">
 
-<!-- HEADER -->
-<div class="flex justify-between items-start mb-4">
-  <div class="flex items-start gap-3">
-    <img src="/apple-touch-icon.png" class="w-8 h-8 mt-1" />
-    <div>
-      <h1 class="text-xl tracking-widest">
-        <span id="mmTitle">MACRO MATRIX CALCULATOR</span>
-      </h1>
+  <div class="max-w-md mx-auto border border-white p-4 min-h-screen">
+
+    <div class="mb-4">
+      <h1 class="text-xl tracking-widest mm-title">BMR / TDEE</h1>
       <p class="text-gray-400 text-sm">
-        Ingredient vectors, summed against daily targets.
+        Estimate maintenance & macros.
       </p>
     </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-4">
+
+      <div class="col-span-2">
+        <label class="text-sm">SEX</label>
+        <select id="sex" class="w-full p-2 border border-white mt-1">
+          <option value="male">MALE</option>
+          <option value="female">FEMALE</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-sm">AGE</label>
+        <input id="age" type="number" min="10" max="120"
+          class="w-full p-2 border border-white mt-1"
+          inputmode="numeric" placeholder="27">
+      </div>
+
+      <div>
+        <label class="text-sm">WEIGHT (LB)</label>
+        <input id="weight_lb" type="number" min="50" max="600"
+          class="w-full p-2 border border-white mt-1"
+          inputmode="decimal" placeholder="190">
+      </div>
+
+      <div>
+        <label class="text-sm">HEIGHT (FT)</label>
+        <input id="height_ft" type="number" min="3" max="8"
+          class="w-full p-2 border border-white mt-1"
+          inputmode="numeric" placeholder="5">
+      </div>
+
+      <div>
+        <label class="text-sm">HEIGHT (IN)</label>
+        <input id="height_in" type="number" min="0" max="11"
+          class="w-full p-2 border border-white mt-1"
+          inputmode="numeric" placeholder="9">
+      </div>
+
+      <div class="col-span-2">
+        <label class="text-sm">ACTIVITY LEVEL</label>
+        <select id="activity" class="w-full p-2 border border-white mt-1">
+          <option value="1.2">SEDENTARY</option>
+          <option value="1.375">LIGHT</option>
+          <option value="1.55" selected>MODERATE</option>
+          <option value="1.725">VERY ACTIVE</option>
+          <option value="1.9">EXTRA ACTIVE</option>
+        </select>
+      </div>
+
+      <div class="col-span-2">
+        <label class="text-sm">GOAL (APPLIES TO MACROS)</label>
+        <select id="goal" class="w-full p-2 border border-white mt-1">
+          <option value="1.0" selected>MAINTAIN</option>
+          <option value="0.90">CUT 10%</option>
+          <option value="0.85">CUT 15%</option>
+          <option value="1.10">LEAN BULK 10%</option>
+          <option value="1.15">BULK 15%</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <button onclick="calculateAll()" class="w-full border border-white py-2 mm-btn rounded-lg">
+        CALCULATE
+      </button>
+      <button onclick="clearAll()" class="w-full border border-white py-2 mm-btn rounded-lg">
+        CLEAR
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">BMR</div>
+        <div id="bmr" class="text-lg mt-1">—</div>
+      </div>
+      <div class="border border-white p-3">
+        <div class="text-xs text-gray-400">TDEE</div>
+        <div id="tdee" class="text-lg mt-1">—</div>
+      </div>
+    </div>
+
+    <div class="border border-white p-3 mb-3">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="text-sm tracking-widest">SUGGESTED MACROS</div>
+        </div>
+        <button onclick="suggestMacros()" class="mm-btn border border-white px-3 py-2 text-sm shrink-0 rounded-lg">
+          SUGGEST
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mt-3">
+        <div class="border border-white p-3">
+          <div class="text-xs text-gray-400">PROTEIN</div>
+          <div id="macro_p" class="text-lg mt-1">—</div>
+          <div class="text-xs text-gray-500">g/day</div>
+        </div>
+        <div class="border border-white p-3">
+          <div class="text-xs text-gray-400">CARBS</div>
+          <div id="macro_c" class="text-lg mt-1">—</div>
+          <div class="text-xs text-gray-500">g/day</div>
+        </div>
+        <div class="border border-white p-3">
+          <div class="text-xs text-gray-400">FAT</div>
+          <div id="macro_f" class="text-lg mt-1">—</div>
+          <div class="text-xs text-gray-500">g/day</div>
+        </div>
+      </div>
+
+      <div class="border border-white p-3 mt-3">
+        <div class="text-xs text-gray-400">GOAL CALORIES USED</div>
+        <div id="goal_cals" class="text-lg mt-1">—</div>
+      </div>
+    </div>
+
+    <a href="/" class="block w-full text-center border border-white py-2 text-xl mt-6 mm-btn rounded-lg">
+      ←
+    </a>
+
   </div>
 
-  <a href="/bmr.html"
-     class="mm-btn border border-white px-3 py-2 text-sm rounded-lg">
-     BMR / TDEE
-  </a>
-</div>
+  <script>
+    function lbToKg(lb) { return lb / 2.2046226218; }
+    function inchesToCm(inches) { return inches * 2.54; }
 
-<!-- TARGETS -->
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-  <input id="targetProtein" type="number" placeholder="TARGET PROTEIN" class="p-2 border border-white" />
-  <input id="targetCarbs" type="number" placeholder="TARGET CARBS" class="p-2 border border-white" />
-  <input id="targetFat" type="number" placeholder="TARGET FAT" class="p-2 border border-white" />
-</div>
+    function readInputs() {
+      const sex = document.getElementById("sex").value;
+      const age = Number(document.getElementById("age").value);
+      const ft = Number(document.getElementById("height_ft").value);
+      const inch = Number(document.getElementById("height_in").value);
+      const lb = Number(document.getElementById("weight_lb").value);
+      const activity = Number(document.getElementById("activity").value);
+      const goalMult = Number(document.getElementById("goal").value);
 
-<!-- INGREDIENT INPUT -->
-<div class="grid gap-2 mb-3">
-  <input id="name" placeholder="INGREDIENT" class="p-2 border border-white" />
-  <div id="results" class="border border-white hidden max-h-40 overflow-y-auto"></div>
-  <input id="protein" type="number" placeholder="PROTEIN (g / serving)" class="p-2 border border-white" />
-  <input id="carbs" type="number" placeholder="CARBS (g / serving)" class="p-2 border border-white" />
-  <input id="fat" type="number" placeholder="FAT (g / serving)" class="p-2 border border-white" />
-  <input id="quantity" type="number" value="1" min="1" placeholder="QTY" class="p-2 border border-white" />
-  <button id="addBtn" class="mm-btn border border-white py-3 text-lg">ADD</button>
-</div>
+      if (!age || !ft || !lb) return null;
+      return { sex, age, ft, inch: (inch || 0), lb, activity, goalMult };
+    }
 
-<!-- TABLE -->
-<div class="overflow-x-auto mb-4">
-<table class="w-full border border-white border-collapse text-xs">
-<thead>
-<tr>
-<th class="border border-white p-2">INGREDIENT</th>
-<th class="border border-white p-2">QTY</th>
-<th class="border border-white p-2">P</th>
-<th class="border border-white p-2">C</th>
-<th class="border border-white p-2">F</th>
-<th class="border border-white p-2">EDIT</th>
-</tr>
-</thead>
-<tbody id="table"></tbody>
-</table>
-</div>
+    function computeBmrTdee(data) {
+      const totalInches = (data.ft * 12) + data.inch;
+      const cm = inchesToCm(totalInches);
+      const kg = lbToKg(data.lb);
 
-<!-- TOTALS -->
-<div class="border border-white p-3">
-  <div class="text-xs text-gray-400">Σ CALORIES</div>
-  <div id="totalCalories" class="text-2xl font-semibold">0</div>
-</div>
+      let bmr = (10 * kg) + (6.25 * cm) - (5 * data.age);
+      bmr = data.sex === "female" ? (bmr - 161) : (bmr + 5);
 
-<button id="resetBtn"
-        class="mm-btn border border-white px-4 py-3 text-lg w-full rounded-lg mt-4">
-  RESET
-</button>
+      const tdee = bmr * data.activity;
+      const goalCals = tdee * data.goalMult;
 
-</div>
+      return { bmr, tdee, goalCals };
+    }
 
-<script>
-let ingredients = JSON.parse(localStorage.getItem('ingredients')) || [];
-let targets = JSON.parse(localStorage.getItem('targets')) || { protein:0, carbs:0, fat:0 };
+    function calculateAll() {
+      const data = readInputs();
+      if (!data) return;
 
-const nameInput = document.getElementById('name');
-const proteinInput = document.getElementById('protein');
-const carbsInput = document.getElementById('carbs');
-const fatInput = document.getElementById('fat');
-const quantityInput = document.getElementById('quantity');
-const addBtn = document.getElementById('addBtn');
-const tableBody = document.getElementById('table');
+      const { bmr, tdee } = computeBmrTdee(data);
+      document.getElementById("bmr").textContent = Math.round(bmr);
+      document.getElementById("tdee").textContent = Math.round(tdee);
+    }
 
-addBtn.addEventListener('click', () => {
-  if(!nameInput.value.trim()) return;
+    function suggestMacros() {
+      const data = readInputs();
+      if (!data) return;
 
-  ingredients.push({
-    name: nameInput.value.toUpperCase(),
-    quantity: Number(quantityInput.value)||1,
-    protein: Number(proteinInput.value)||0,
-    carbs: Number(carbsInput.value)||0,
-    fat: Number(fatInput.value)||0
-  });
+      const { bmr, tdee, goalCals } = computeBmrTdee(data);
 
-  nameInput.value = '';
-  proteinInput.value = '';
-  carbsInput.value = '';
-  fatInput.value = '';
-  quantityInput.value = 1;
+      document.getElementById("bmr").textContent = Math.round(bmr);
+      document.getElementById("tdee").textContent = Math.round(tdee);
+      document.getElementById("goal_cals").textContent = Math.round(goalCals);
 
-  update();
-});
+      const proteinG = Math.round(0.9 * data.lb);
+      const fatG = Math.round(0.35 * data.lb);
 
-function update(){
-  tableBody.innerHTML='';
-  let totals = {protein:0, carbs:0, fat:0};
+      const proteinCals = proteinG * 4;
+      const fatCals = fatG * 9;
 
-  ingredients.forEach((i,idx)=>{
-    totals.protein += i.protein*i.quantity;
-    totals.carbs += i.carbs*i.quantity;
-    totals.fat += i.fat*i.quantity;
+      const remaining = Math.max(0, goalCals - proteinCals - fatCals);
+      const carbsG = Math.round(remaining / 4);
 
-    tableBody.innerHTML += `
-      <tr>
-        <td class="border border-white p-2">${i.name}</td>
-        <td class="border border-white p-2">${i.quantity}</td>
-        <td class="border border-white p-2">${i.protein*i.quantity}</td>
-        <td class="border border-white p-2">${i.carbs*i.quantity}</td>
-        <td class="border border-white p-2">${i.fat*i.quantity}</td>
-        <td class="border border-white p-2">
-          <button onclick="removeIngredient(${idx})">X</button>
-        </td>
-      </tr>`;
-  });
+      document.getElementById("macro_p").textContent = proteinG;
+      document.getElementById("macro_f").textContent = fatG;
+      document.getElementById("macro_c").textContent = carbsG;
+    }
 
-  const calories = totals.protein*4 + totals.carbs*4 + totals.fat*9;
-  document.getElementById('totalCalories').textContent = calories;
-  localStorage.setItem('ingredients',JSON.stringify(ingredients));
-}
+    function clearAll() {
+      ["age","weight_lb","height_ft","height_in"].forEach(id => document.getElementById(id).value = "");
+      document.getElementById("sex").value = "male";
+      document.getElementById("activity").value = "1.55";
+      document.getElementById("goal").value = "1.0";
 
-function removeIngredient(index){
-  ingredients.splice(index,1);
-  update();
-}
+      document.getElementById("bmr").textContent = "—";
+      document.getElementById("tdee").textContent = "—";
+      document.getElementById("macro_p").textContent = "—";
+      document.getElementById("macro_c").textContent = "—";
+      document.getElementById("macro_f").textContent = "—";
+      document.getElementById("goal_cals").textContent = "—";
+    }
+  </script>
 
-update();
-</script>
 </body>
 </html>
