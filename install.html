@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* --- Background container --- */
+    /* Background container */
     #bgArt {
       position: fixed;
       inset: 0;
@@ -19,36 +19,29 @@
       overflow: hidden;
     }
 
-    /* --- Pixel art image --- */
+    /* Pixel art */
     #bgArt img {
       width: min(600px, 90vw);
       height: auto;
-      opacity: 0.18;
+      opacity: 0.35; /* increased so you can see it */
       image-rendering: pixelated;
       animation: vanish 8s linear infinite;
       transform-origin: bottom center;
     }
 
-    /* --- Disappearing animation --- */
+    /* Disappear bottom → top */
     @keyframes vanish {
       0% {
-        opacity: 0.18;
+        opacity: 0.35;
         clip-path: inset(0 0 0 0);
-        filter: blur(0px);
       }
-      60% {
-        opacity: 0.14;
-        clip-path: inset(0 0 50% 0);
-      }
-      85% {
-        opacity: 0.08;
-        clip-path: inset(0 0 80% 0);
-        filter: blur(1px);
+      70% {
+        opacity: 0.25;
+        clip-path: inset(0 0 60% 0);
       }
       100% {
         opacity: 0;
         clip-path: inset(0 0 100% 0);
-        filter: blur(2px);
       }
     }
   </style>
@@ -56,13 +49,13 @@
 
 <body class="bg-black text-white min-h-screen font-mono flex items-center justify-center p-6">
 
-  <!-- Pixel Art Background -->
+  <!-- Pixel Background -->
   <div id="bgArt">
-    <img src="/mcdonalds-pixel.jpg" alt="" aria-hidden="true" />
+    <img src="/mcdonalds-pixel.jpg" alt="" />
   </div>
 
-  <!-- Foreground Card -->
-  <div class="max-w-xl w-full border border-white p-8 space-y-6 relative z-10 bg-black/75 backdrop-blur-sm">
+  <!-- Content Card (transparent now) -->
+  <div class="max-w-xl w-full border border-white p-8 space-y-6 relative z-10">
 
     <h1 class="text-2xl tracking-widest text-center">
       INSTALL MACRO MATRIX
