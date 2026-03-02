@@ -284,6 +284,14 @@
       </button>
     </div>
 
+
+    <div class="mt-3">
+      <button id="upgradeBtn" class="mm-btn border border-white px-4 py-3 text-lg w-full rounded-lg">
+        UPGRADE
+      </button>
+      <div id="upgradeStatus" class="text-xs text-gray-400 mt-2 text-center hidden"></div>
+    </div>
+
     <div class="text-xs text-gray-500 mt-6 text-center border-t border-white pt-3">
       © 2026 Shaan Bir — Macro Matrix — MIT License
     </div>
@@ -644,6 +652,112 @@
 
     update();
   });
+
+
+
+  // ----------------------------
+  // Upgrade (force latest version without cache-clearing)
+  // ----------------------------
+  const upgradeBtn = document.getElementById("upgradeBtn");
+  const upgradeStatus = document.getElementById("upgradeStatus");
+
+  function setUpgradeStatus(msg) {
+    if (!upgradeStatus) return;
+    upgradeStatus.textContent = msg;
+    upgradeStatus.classList.remove("hidden");
+  }
+
+  function cacheBustReload() {
+    const u = new URL(window.location.href);
+    u.searchParams.set("v", Date.now().toString());
+    window.location.replace(u.toString());
+  }
+
+  async function upgradeNow() {
+    setUpgradeStatus("Checking for updates…");
+
+    // If no service worker, just force a fresh navigation URL.
+    if (!("serviceWorker" in navigator)) {
+      setUpgradeStatus("Reloading latest…");
+      cacheBustReload();
+      return;
+    }
+
+    let reg = null;
+    try {
+      reg = await navigator.serviceWorker.getRegistration();
+    } catch {}
+
+    if (!reg) {
+      setUpgradeStatus("Reloading latest…");
+      cacheBustReload();
+      return;
+    }
+
+    // Reload once the new SW takes control.
+    let reloaded = false;
+    const onController = () => {
+      if (reloaded) return;
+      reloaded = true;
+      setUpgradeStatus("Updated ✓ Reloading…");
+      cacheBustReload();
+    };
+    navigator.serviceWorker.addEventListener("controllerchange", onController);
+
+    try { await reg.update(); } catch {}
+
+    // If a new SW is already waiting, activate it now.
+    if (reg.waiting) {
+      setUpgradeStatus("Applying update…");
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      return;
+    }
+
+    // Otherwise, wait briefly for an update to be found/installed.
+    await new Promise((resolve) => {
+      let done = false;
+
+      const finish = () => {
+        if (done) return;
+        done = true;
+        resolve(null);
+      };
+
+      const timer = setTimeout(finish, 5000);
+
+      reg.addEventListener("updatefound", () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        setUpgradeStatus("Downloading update…");
+
+        sw.addEventListener("statechange", () => {
+          if (sw.state === "installed") {
+            clearTimeout(timer);
+            if (reg.waiting) {
+              setUpgradeStatus("Applying update…");
+              reg.waiting.postMessage({ type: "SKIP_WAITING" });
+            } else {
+              finish();
+            }
+          }
+        });
+      });
+
+      // If nothing happens quickly, still reload with a cache-busting URL.
+      // (Useful for non-PWA browser visitors.)
+      // controllerchange handler above will win if SW updates.
+      setTimeout(() => {
+        if (!reloaded) {
+          setUpgradeStatus("Reloading latest…");
+          cacheBustReload();
+        }
+        finish();
+      }, 5500);
+    });
+  }
+
+  upgradeBtn?.addEventListener("click", upgradeNow);
+
 
 
 
