@@ -32,3 +32,16 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
+
+
+// ðŸ”„ Allow immediate upgrade when UPGRADE button is clicked
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Claim clients immediately after activation
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
