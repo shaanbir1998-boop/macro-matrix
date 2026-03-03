@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Macro Matrix">
+  <title>My Workout — Macro Matrix</title>
+  <meta name="theme-color" content="#000000">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root{
+      --mm-silhouette: #000000;
+      --mm-stalactite: #E6E7E8;
+      --mm-secret:     #A7B0B8;
+      --mm-bluebird:   #F27D9B;
+    }
+
+    body{
+      background: var(--mm-silhouette) !important;
+      color: var(--mm-stalactite) !important;
+    }
+
+    .border-white{ border-color: var(--mm-stalactite) !important; }
+    .border{ border-color: var(--mm-stalactite) !important; }
+
+    .text-gray-400, .text-gray-500, .text-gray-300{
+      color: var(--mm-stalactite) !important;
+      opacity: 0.9;
+    }
+
+    #mmTitle{ color: var(--mm-secret) !important; }
+
+    input, textarea, select{
+      background: transparent !important;
+      color: var(--mm-stalactite) !important;
+      border: 1px solid var(--mm-stalactite) !important;
+      border-radius: 0 !important;
+    }
+    textarea{ resize: vertical; }
+    input::placeholder, textarea::placeholder{ color: rgba(230,231,232,0.65); }
+    input:focus, textarea:focus, select:focus{
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(230,231,232,0.25);
+    }
+
+    .mm-btn{
+      background: var(--mm-bluebird) !important;
+      color: var(--mm-stalactite) !important;
+      border-color: var(--mm-bluebird) !important;
+      transition: opacity 0.15s ease, transform 0.12s ease;
+    }
+    .mm-btn:hover{ opacity: 0.88; }
+    .mm-btn:active{ transform: translateY(1px); }
+
+    .mm-card{ background: rgba(255,255,255,0.02); }
+
+    .mm-chip{
+      border: 1px solid var(--mm-stalactite);
+      padding: 2px 8px;
+      font-size: 11px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      opacity: .95;
+      white-space: nowrap;
+    }
+
+    .mm-day{ border-left-width: 6px !important; }
+
+    .mm-mini{
+      border: 1px solid var(--mm-stalactite) !important;
+      padding: 6px 10px;
+      font-size: 12px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .mm-mini:active{ transform: translateY(1px); }
+
+    .pb-safe{ padding-bottom: env(safe-area-inset-bottom); }
+    .pt-safe{ padding-top: env(safe-area-inset-top); }
+
+    /* Checkbox vibe (keep it simple + crisp) */
+    input[type="checkbox"]{
+      accent-color: var(--mm-bluebird);
+    }
+  
+.mm-today{
+  box-shadow: 0 0 0 2px rgba(242,125,155,0.35) inset;
+}
+
+  
+.mm-mini{
+  white-space:nowrap;
+}
+
+</style>
+</head>
+
+<body class="min-h-screen font-mono p-4">
+  <div class="max-w-md mx-auto border border-white p-4 min-h-screen pb-safe">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-4">
+      <div class="flex items-start gap-3">
+        <img src="/apple-touch-icon.png" alt="Logo" class="w-8 h-8 mt-1" />
+        <div>
+          <h1 class="text-xl tracking-widest">
+            <span id="mmTitle">MY WORKOUT</span>
+          </h1>
+          <p class="text-gray-400 text-sm">
+            Weekly calendar + checklists (local only).
+          </p>
+        </div>
+      </div>
+
+      <a href="/index-4.html" class="mm-btn border border-white px-3 py-2 text-sm rounded-lg inline-flex items-center justify-center">
+        ← BACK
+      </a>
+    </div>
+
+    <!-- Week Controls -->
+    <div class="border border-white p-3 mb-4 mm-card">
+      <div class="flex items-center justify-between gap-2">
+        <button id="prevWeek" class="mm-mini mm-btn">PREV</button>
+
+        <div class="text-center flex-1">
+          <div class="text-xs text-gray-400 tracking-widest">WEEK OF</div>
+          <div id="weekLabel" class="text-lg tracking-widest"></div>
+        </div>
+
+        <button id="nextWeek" class="mm-mini mm-btn">NEXT</button>
+      </div>
+
+      <div class="flex items-center justify-between mt-3 gap-2 flex-wrap">
+  <div class="flex items-center gap-2 flex-wrap">
+    <button id="todayBtn" class="mm-mini">TODAY</button>
+    <button id="copyPrevWeekBtn" class="mm-mini">COPY LAST</button>
+  </div>
+
+  <div class="flex items-center gap-2 flex-wrap">
+    <select id="historySelect" class="mm-mini px-2 py-[6px]" title="Jump to a saved week"></select>
+    <select id="templateSelect" class="mm-mini px-2 py-[6px]"></select>
+    <button id="applyTemplateBtn" class="mm-mini mm-btn">APPLY</button>
+    <button id="newTemplateBtn" class="mm-mini">NEW</button>
+    <button id="deleteTemplateBtn" class="mm-mini hidden">DELETE</button>
+    <button id="exportTemplatesBtn" class="mm-mini">EXPORT</button>
+    <label class="mm-mini" style="cursor:pointer;">
+      IMPORT
+      <input id="importTemplatesInput" type="file" accept="application/json" style="display:none;" />
+    </label>
+  </div>
+</div>
+
+<div class="text-xs text-gray-400 mt-3">
+
+        Tip: check off lines as you complete them. Use DONE to finish a whole day (D1–D7). Today is highlighted.
+      </div>
+    </div>
+
+    <!-- Days -->
+    <div id="daysGrid" class="grid grid-cols-1 gap-3"></div>
+
+    
+
+<!-- New Template Modal -->
+<div id="tplModal" class="fixed inset-0 hidden" style="background: rgba(0,0,0,0.75);">
+  <div class="max-w-md mx-auto p-4 pt-safe">
+    <div class="border border-white p-4 mm-card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-sm tracking-widest" style="letter-spacing:.2em; text-transform:uppercase;">NEW TEMPLATE</div>
+        <button id="tplCancel" class="mm-mini">CLOSE</button>
+      </div>
+
+      <div class="space-y-3">
+        <input id="tplName" class="w-full p-2 text-sm" placeholder="TEMPLATE NAME (e.g., PPL, CUT, etc.)" maxlength="24" />
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="tplModeBuild" class="mm-mini mm-btn flex-1">BUILD</button>
+          <button id="tplModePaste" class="mm-mini flex-1">PASTE</button>
+        </div>
+
+        <!-- BUILD MODE -->
+        <div id="tplBuild" class="space-y-3">
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="tplDaySelect" class="mm-mini px-2 py-[6px] flex-1">
+              <option value="0">D1</option><option value="1">D2</option><option value="2">D3</option>
+              <option value="3">D4</option><option value="4">D5</option><option value="5">D6</option><option value="6">D7</option>
+            </select>
+            <button id="tplDayClear" class="mm-mini">CLEAR DAY</button>
+          </div>
+
+          <input id="tplDayTitle" class="w-full p-2 text-sm" placeholder="DAY TITLE (e.g., BENCH, SQUAT, ACTIVE REST)" />
+
+          <div class="border border-white p-2">
+            <div class="text-xs text-gray-400 tracking-widest mb-2">LINES</div>
+            <div id="tplLines" class="space-y-2"></div>
+            <button id="tplAddLine" class="mm-mini mt-2 w-full">ADD LINE</button>
+          </div>
+
+          <div class="text-xs text-gray-400">
+            Tip: this builds the same checklist format automatically (D1–D7 + ☐ lines).
+          </div>
+        </div>
+
+        <!-- PASTE MODE -->
+        <div id="tplPaste" class="space-y-2 hidden">
+          <textarea id="tplRaw" class="w-full p-2 text-sm" rows="10" placeholder="Paste your template here (include D1–D7 headers)…"></textarea>
+          <div class="text-xs text-gray-400">
+            Format tip: Use lines like <span class="mm-chip">D1 – BENCH</span> and checkbox lines starting with <span class="mm-chip">☐</span>.
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button id="tplSave" class="mm-mini mm-btn">SAVE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+    <div class="text-xs text-gray-500 mt-6 text-center border-t border-white pt-3">
+      © 2026 Shaan Bir — Macro Matrix — MIT License
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ----------------------------
+  // Helpers: dates (week starts Monday)
+  // ----------------------------
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const toISODate = (d) => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+
+  function startOfWeekMonday(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const day = x.getDay(); // 0 Sun ... 6 Sat
+    const diff = (day === 0) ? -6 : (1 - day); // Monday start
+    x.setDate(x.getDate() + diff);
+    return x;
+  }
+
+  function addDays(d, days) {
+    const x = new Date(d);
+    x.setDate(x.getDate() + days);
+    return x;
+  }
+
+  function fmtWeekLabel(weekStart) {
+    const end = addDays(weekStart, 6);
+    const opts = { month: "short", day: "numeric" };
+    const a = weekStart.toLocaleDateString(undefined, opts);
+    const b = end.toLocaleDateString(undefined, opts);
+    return `${a} – ${b}`;
+  }
+
+  const D_LABELS = ["D1","D2","D3","D4","D5","D6","D7"];
+  const DAY_NAMES = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+  // ----------------------------
+  // Templates (as pasted)
+  // ----------------------------
+  const TEMPLATE_STRENGTH_RAW = `STRENGTH
+
+- [ ] D1 – BENCH
+☐ BB Bench 5×5
+☐ Inc DB Bench 4×8
+☐ CS Row 4×8
+☐ Tri Pushdown 3×12
+☐ Lateral Raise 3×15
+
+- [ ] D2 – SQUAT
+☐ Back Squat 5×5
+☐ Leg Press 4×10
+☐ RDL 3×8
+☐ Seated Leg Curl 3×12
+☐ Walking Lunges 3×20 steps
+
+- [ ] D3 – REST
+☐ Rest
+
+- [ ] D4 – OHP + BACK
+☐ BB OHP 5×5
+☐ Pull-Ups / Pulldown 4×8
+☐ BB Row 4×8, Low Row 3x8
+☐ DB Curl 3×12
+☐ Face Pull 3×15
+
+- [ ] D5 – DEADLIFT
+☐ Deadlift 5×3
+☐ Front Squat 3×6
+☐ Hip Thrust 3×8
+☐ Hanging Leg Raise 3×12
+
+- [ ] D6 – OPTIONAL
+☐ Fartlek run
+
+- [ ] D7 – Rest
+☐ Hike/Sauna`;
+
+  const TEMPLATE_HYPERTROPHY_RAW = `Hypertrophy
+
+* ○ D1 – BENCH (Chest Bias)
+☐ BB Bench 4×8
+☐ Inc DB Bench 4×10
+☐ Cable Decline Press 3×12
+☐ CS Row 4×10
+☐ Tri Pushdown 3×15
+☐ Lateral Raise 4×15
+☐ RPM/Sprint
+
+* ○ D2 – SQUAT
+☐ Back Squat 4×8
+☐ Leg Press 4×10
+☐ RDL 4×10
+☐ Leg Curl 3×15
+☐ Walking Lunges 3×20 steps
+☐ No cardio
+
+* ○ D3 – ACTIVE REST
+☐ RPM 45 min (Zone 2)
+
+* ○ D4 – OHP + BACK
+☐ BB OHP 4×6
+☐ Pull-Ups / Pulldown 4×7
+☐ BB Row 4×8
+☐ Low Row 3×12
+☐ DB Curl 3×12
+☐ Face Pull 3×15
+☐ RPM/Sprint
+
+* ○ D5 – DEADLIFT
+☐ Deadlift 4×5
+☐ Front Squat 3×10
+☐ Hip Thrust 4×10
+☐ Hanging Leg Raise 3×15
+☐ No cardio
+
+* ○ D6 – CONDITIONING DAY
+☐ Fartlek Run 30 min
+
+* ○ D7 – ACTIVE REST
+☐ Relaxed hike
+☐ Sauna`;
+
+const BUILTIN_TEMPLATES = [
+  { id: "strength",   name: "STRENGTH",   raw: TEMPLATE_STRENGTH_RAW },
+  { id: "hypertrophy",name: "HYPERTROPHY",raw: TEMPLATE_HYPERTROPHY_RAW },
+];
+
+const TPL_KEY = "mm_workout_templates_v1";
+
+function loadCustomTemplates(){
+  try{
+    const arr = JSON.parse(localStorage.getItem(TPL_KEY) || "[]");
+    return Array.isArray(arr) ? arr.filter(t => t && t.id && t.name && t.raw) : [];
+  }catch{
+    return [];
+  }
+}
+
+function saveCustomTemplates(arr){
+  localStorage.setItem(TPL_KEY, JSON.stringify(arr));
+}
+
+function uid(){
+  return "tpl_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+}
+
+function getAllTemplates(){
+  const custom = loadCustomTemplates();
+  return [...BUILTIN_TEMPLATES, ...custom];
+}
+
+
+  function normalizeLine(s){
+    return String(s || "")
+      .replace(/\r/g, "")
+      .replace(/^\s*-\s*\[\s*[xX ]\s*\]\s*/g, "")   // markdown task prefix "- [ ]"
+      .replace(/^\s*\[\s*[xX ]\s*\]\s*/g, "")        // markdown task prefix "[ ]"
+      .replace(/^\s*[\*\-]\s*/g, "")                   // leading bullets
+      .replace(/^\s*○\s*/g, "")                          // leading circle bullet
+      .trim();
+  }
+
+  function parseTemplate(raw){
+    // Normalize weird line separators (often pasted from Notes)
+    let txt = String(raw || "")
+      .replace(/\r/g, "\n")
+      .replace(/\u2028/g, "\n")  // line separator
+      .replace(/\u2029/g, "\n")  // paragraph separator
+      .replace(/\u0085/g, "\n"); // next line
+
+    // Ensure any inline "D1 – ...☐ ..." becomes separate lines
+    txt = txt.replace(/(D[1-7]\s*[–-]\s*[^\n]*?)\s*☐/gi, "$1\n☐");
+
+    const lines = txt.split("\n").map(normalizeLine);
+
+    // title = first non-empty line not starting with D1..D7
+    let title = "TEMPLATE";
+    for (const l of lines){
+      if (!l) continue;
+      if (/^D[1-7]\s*[–-]/i.test(l)) break;
+      title = l.toUpperCase();
+      break;
+    }
+
+    const days = Array.from({length:7}, () => ({ header:"", items:[] }));
+    let current = -1;
+
+    for (const l0 of lines){
+      const l = l0;
+      if (!l) continue;
+
+      const m = l.match(/^(D([1-7]))\s*[–-]\s*(.*)$/i);
+      if (m){
+        current = Number(m[2]) - 1;
+        days[current].header = `${m[1].toUpperCase()} – ${m[3].trim()}`;
+        continue;
+      }
+
+      if (current >= 0){
+        const cleaned = l.replace(/^☐\s*/g, "").replace(/^□\s*/g, "").trim();
+        if (cleaned) days[current].items.push(cleaned);
+      }
+    }
+
+    return { title, days };
+  }
+
+  // ----------------------------
+  // Storage
+  // ----------------------------
+  const KEY = "mm_workouts_v2";
+
+  function loadAll() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "{}"); }
+    catch { return {}; }
+  }
+
+  function saveAll(db) {
+    localStorage.setItem(KEY, JSON.stringify(db));
+  }
+
+  function ensureWeek(db, weekKey) {
+    if (!db[weekKey]) db[weekKey] = { days: [] };
+    if (!Array.isArray(db[weekKey].days)) db[weekKey].days = [];
+    for (let i=0;i<7;i++){
+      if (!db[weekKey].days[i]) {
+        db[weekKey].days[i] = {
+          color: "#F27D9B",
+          complete: false,
+          header: "",
+          items: [],
+          notes: ""
+        };
+      }
+    }
+    return db;
+  }
+
+  // ----------------------------
+  // UI
+  // ----------------------------
+  const daysGrid = document.getElementById("daysGrid");
+  const weekLabel = document.getElementById("weekLabel");
+  const prevWeek = document.getElementById("prevWeek");
+  const nextWeek = document.getElementById("nextWeek");
+  const todayBtn = document.getElementById("todayBtn");
+  const copyPrevWeekBtn = document.getElementById("copyPrevWeekBtn");
+  const historySelect = document.getElementById("historySelect");
+  const exportTemplatesBtn = document.getElementById("exportTemplatesBtn");
+  const importTemplatesInput = document.getElementById("importTemplatesInput");
+  const templateSelect = document.getElementById("templateSelect");
+  const applyTemplateBtn = document.getElementById("applyTemplateBtn");
+  const newTemplateBtn = document.getElementById("newTemplateBtn");
+  const deleteTemplateBtn = document.getElementById("deleteTemplateBtn");
+
+  const tplModal = document.getElementById("tplModal");
+  const tplCancel = document.getElementById("tplCancel");
+  const tplSave = document.getElementById("tplSave");
+  const tplName = document.getElementById("tplName");
+  const tplRaw = document.getElementById("tplRaw");
+  const tplModeBuild = document.getElementById("tplModeBuild");
+  const tplModePaste = document.getElementById("tplModePaste");
+  const tplBuild = document.getElementById("tplBuild");
+  const tplPaste = document.getElementById("tplPaste");
+  const tplDaySelect = document.getElementById("tplDaySelect");
+  const tplDayTitle = document.getElementById("tplDayTitle");
+  const tplLines = document.getElementById("tplLines");
+  const tplAddLine = document.getElementById("tplAddLine");
+  const tplDayClear = document.getElementById("tplDayClear");
+
+  let db = loadAll();
+  let weekStart = startOfWeekMonday(new Date());
+
+  function weekKey(d) { return toISODate(d); }
+
+  function setWeek(d) {
+    weekStart = startOfWeekMonday(d);
+    const key = weekKey(weekStart);
+    db = ensureWeek(db, key);
+    saveAll(db);
+    refreshHistorySelect(key);
+    render();
+  }
+
+  
+function findTemplateById(id){
+  return getAllTemplates().find(t => t.id === id) || null;
+}
+
+function applyTemplateToWeek(key, templateId){
+  const tpl = findTemplateById(templateId);
+  if (!tpl) return;
+
+  const parsed = parseTemplate(tpl.raw);
+
+  parsed.days.forEach((d, idx) => {
+    const day = db[key].days[idx];
+    day.header = d.header || `${D_LABELS[idx]} –`;
+    day.items  = (d.items || []).map(t => ({ text: t, done: false,  }));
+    day.notes = "";
+    day.complete = false;
+    if (!day.color) day.color = "#F27D9B";
+  });
+}
+
+  function render() {
+    const key = weekKey(weekStart);
+    weekLabel.textContent = fmtWeekLabel(weekStart);
+    daysGrid.innerHTML = "";
+
+    const today = new Date();
+    const todayKey = weekKey(startOfWeekMonday(today));
+    const todayIdx = (todayKey === key) ? ((today.getDay() === 0) ? 6 : (today.getDay() - 1)) : -1;
+
+    for (let i=0;i<7;i++){
+      const dayDate = addDays(weekStart, i);
+      const day = db[key].days[i];
+
+      const card = document.createElement("div");
+      card.className = "border border-white p-3 mm-card mm-day";
+      card.dataset.dayindex = String(i);
+      card.style.borderLeftColor = day.color || "#F27D9B";
+      if (i === todayIdx) card.classList.add("mm-today");
+
+      // Top row
+      const top = document.createElement("div");
+      top.className = "flex items-start justify-between gap-2 mb-3";
+
+      const left = document.createElement("div");
+      left.className = "flex-1";
+      left.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <span class="mm-chip">${D_LABELS[i]}</span>
+          <span class="mm-chip">${DAY_NAMES[i]}</span>
+          <span class="text-xs text-gray-400">${dayDate.toLocaleDateString(undefined, { month:"short", day:"numeric" })}</span>
+        </div>
+        <div class="text-sm tracking-widest" style="letter-spacing:.08em; text-transform:uppercase;">
+          ${escapeHtml(day.header || "")}
+        </div>
+      `;
+
+      const right = document.createElement("div");
+      right.className = "flex flex-col items-end gap-2";
+
+      const color = document.createElement("input");
+      color.type = "color";
+      color.value = day.color || "#F27D9B";
+      color.className = "w-10 h-10 p-0 border border-white";
+      color.title = "Colorize day";
+
+      const doneWrap = document.createElement("label");
+      doneWrap.className = "flex items-center gap-2 text-xs";
+      doneWrap.innerHTML = `
+        <input type="checkbox" class="w-4 h-4" ${day.complete ? "checked" : ""}>
+        <span class="text-gray-400">DONE</span>
+      `;
+
+      right.appendChild(color);
+      right.appendChild(doneWrap);
+
+      top.appendChild(left);
+      top.appendChild(right);
+      card.appendChild(top);
+
+      // Checklist list (looks like your pasted layout)
+      const list = document.createElement("div");
+      list.className = "space-y-2";
+
+      (day.items || []).forEach((it, idx) => {
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-2";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.className = "w-4 h-4";
+        cb.checked = !!it.done;
+
+        const label = document.createElement("div");
+        label.className = "flex-1 text-sm";
+        label.textContent = it.text || "";
+
+// removed weight input
+        
+
+        cb.addEventListener("change", () => {
+          it.done = cb.checked;
+          persist();
+        });
+
+        row.appendChild(cb);
+        row.appendChild(label);
+        list.appendChild(row);
+      });
+
+      card.appendChild(list);
+
+      // Notes (no "Apple Notes" text)
+      const notes = document.createElement("textarea");
+      notes.className = "w-full p-2 mt-3 text-sm";
+      notes.rows = 4;
+      notes.placeholder = "NOTES…";
+      notes.value = day.notes || "";
+      notes.addEventListener("input", () => {
+        day.notes = notes.value;
+        persist();
+      });
+      card.appendChild(notes);
+
+      // Wire header actions
+      color.addEventListener("input", () => {
+        day.color = color.value;
+        card.style.borderLeftColor = day.color;
+        persist();
+      });
+
+      const doneCb = doneWrap.querySelector("input[type=checkbox]");
+      doneCb.addEventListener("change", () => {
+        day.complete = doneCb.checked;
+        persist();
+      });
+
+      daysGrid.appendChild(card);
+    }
+// Auto-scroll to today (when viewing the current week)
+if (todayIdx >= 0) {
+  const el = daysGrid.querySelector(`[data-dayindex="${todayIdx}"]`);
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+  }
+
+  function persist(reRender=false) {
+    const key = weekKey(weekStart);
+    ensureWeek(db, key);
+    saveAll(db);
+    if (reRender) render();
+  }
+
+function refreshTemplateSelect(selectedId){
+  const all = getAllTemplates();
+  templateSelect.innerHTML = "";
+
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "TEMPLATE…";
+  templateSelect.appendChild(opt0);
+
+  // Built-ins
+  BUILTIN_TEMPLATES.forEach(t => {
+    const o = document.createElement("option");
+    o.value = t.id;
+    o.textContent = t.name;
+    templateSelect.appendChild(o);
+  });
+
+  const custom = loadCustomTemplates();
+  if (custom.length){
+    const sep = document.createElement("option");
+    sep.disabled = true;
+    sep.textContent = "────────";
+    templateSelect.appendChild(sep);
+
+    custom.forEach(t => {
+      const o = document.createElement("option");
+      o.value = t.id;
+      o.textContent = t.name;
+      templateSelect.appendChild(o);
+    });
+  }
+
+  if (selectedId) templateSelect.value = selectedId;
+  updateDeleteVisibility();
+}
+
+function isCustomTemplateId(id){
+  return loadCustomTemplates().some(t => t.id === id);
+}
+
+
+function refreshHistorySelect(currentKey){
+  const keys = Object.keys(db || {}).sort(); // ascending
+  const recent = keys.slice().reverse().slice(0, 26);
+  historySelect.innerHTML = "";
+
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "HISTORY…";
+  historySelect.appendChild(opt0);
+
+  recent.forEach(k => {
+    const o = document.createElement("option");
+    o.value = k;
+    const ws = new Date(k + "T00:00:00");
+    o.textContent = fmtWeekLabel(ws);
+    historySelect.appendChild(o);
+  });
+
+  if (currentKey && recent.includes(currentKey)) historySelect.value = currentKey;
+}
+
+function updateDeleteVisibility(){
+  const id = templateSelect.value;
+  if (id && isCustomTemplateId(id)){
+    deleteTemplateBtn.classList.remove("hidden");
+  } else {
+    deleteTemplateBtn.classList.add("hidden");
+  }
+}
+
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // Week nav
+  prevWeek.addEventListener("click", () => setWeek(addDays(weekStart, -7)));
+  nextWeek.addEventListener("click", () => setWeek(addDays(weekStart,  7)));
+  todayBtn.addEventListener("click", () => setWeek(new Date()));
+
+  historySelect.addEventListener("change", () => {
+    const k = historySelect.value;
+    if (!k) return;
+    const d = new Date(k + "T00:00:00");
+    setWeek(d);
+  });
+
+
+copyPrevWeekBtn.addEventListener("click", () => {
+  const key = weekKey(weekStart);
+  const prevStart = addDays(weekStart, -7);
+  const prevKey = weekKey(prevStart);
+
+  if (!db[prevKey]) {
+    alert("No saved data for last week.");
+    return;
+  }
+  if (!confirm("Copy last week into this week? (Overwrites this week’s plan)")) return;
+
+  const srcWeek = db[prevKey];
+  db[key] = db[key] || { days: [] };
+  db[key].days = (srcWeek.days || []).map(d => ({
+    color: d.color || "#F27D9B",
+    complete: false,
+    header: d.header || "",
+    items: (d.items || []).map(it => ({ text: it.text || "", done: false, weight: "" })),
+    notes: ""
+  }));
+
+  saveAll(db);
+  refreshHistorySelect(key);
+  render();
+});
+
+  // Template apply
+
+templateSelect.addEventListener("change", updateDeleteVisibility);
+
+applyTemplateBtn.addEventListener("click", () => {
+  const choice = templateSelect.value;
+  if (!choice) { alert("Choose a template first."); return; }
+
+  const tpl = findTemplateById(choice);
+  const label = tpl ? tpl.name : "TEMPLATE";
+  if (!confirm(`Apply ${label} template to this entire week? (Overwrites this week’s plan)`)) return;
+
+  const key = weekKey(weekStart);
+  applyTemplateToWeek(key, choice);
+  persist(true);
+});
+
+
+// New Template modal
+function openTplModal(){
+  tplName.value = "";
+  tplRaw.value = "";
+  tplModal.classList.remove("hidden");
+}
+function closeTplModal(){
+  tplModal.classList.add("hidden");
+}
+
+
+// New Template modal
+const builder = {
+  mode: "build", // "build" | "paste"
+  days: Array.from({length:7}, () => ({ title:"", lines:[""] }))
+};
+
+function setTplMode(mode){
+  builder.mode = mode;
+  if (mode === "build"){
+    tplModeBuild.classList.add("mm-btn");
+    tplModePaste.classList.remove("mm-btn");
+    tplBuild.classList.remove("hidden");
+    tplPaste.classList.add("hidden");
+  } else {
+    tplModePaste.classList.add("mm-btn");
+    tplModeBuild.classList.remove("mm-btn");
+    tplPaste.classList.remove("hidden");
+    tplBuild.classList.add("hidden");
+  }
+}
+
+function renderBuilderDay(i){
+  const d = builder.days[i];
+  tplDayTitle.value = d.title || "";
+  tplLines.innerHTML = "";
+  (d.lines && d.lines.length ? d.lines : [""]).forEach((line, idx) => {
+    const row = document.createElement("div");
+    row.className = "flex items-center gap-2";
+
+    const inp = document.createElement("input");
+    inp.className = "flex-1 p-2 text-sm";
+    inp.placeholder = "Line (e.g., BB Bench 5×5)";
+    inp.value = line || "";
+
+    const del = document.createElement("button");
+    del.className = "mm-mini";
+    del.textContent = "DEL";
+
+    inp.addEventListener("input", () => {
+      builder.days[i].lines[idx] = inp.value;
+    });
+
+    del.addEventListener("click", () => {
+      builder.days[i].lines.splice(idx, 1);
+      if (builder.days[i].lines.length === 0) builder.days[i].lines = [""];
+      renderBuilderDay(i);
+    });
+
+    row.appendChild(inp);
+    row.appendChild(del);
+    tplLines.appendChild(row);
+  });
+}
+
+function builderToRaw(nameUpper){
+  const parts = [];
+  parts.push(nameUpper);
+  parts.push("");
+  for (let i=0;i<7;i++){
+    const dayLabel = `D${i+1}`;
+    const title = (builder.days[i].title || "").trim();
+    const header = `${dayLabel} – ${title || ""}`.trim();
+    parts.push(`- [ ] ${header}`);
+    const lines = (builder.days[i].lines || []).map(s => (s || "").trim()).filter(Boolean);
+    if (lines.length === 0) {
+      parts.push("☐ ");
+    } else {
+      lines.forEach(l => parts.push(`☐ ${l}`));
+    }
+    if (i !== 6) parts.push("");
+  }
+  return parts.join("\n");
+}
+
+function openTplModal(){
+  tplName.value = "";
+  tplRaw.value = "";
+  builder.days = Array.from({length:7}, () => ({ title:"", lines:[""] }));
+  tplDaySelect.value = "0";
+  renderBuilderDay(0);
+  setTplMode("build");
+  tplModal.classList.remove("hidden");
+}
+
+function closeTplModal(){
+  tplModal.classList.add("hidden");
+}
+
+newTemplateBtn.addEventListener("click", openTplModal);
+tplCancel.addEventListener("click", closeTplModal);
+
+tplModeBuild.addEventListener("click", () => setTplMode("build"));
+tplModePaste.addEventListener("click", () => setTplMode("paste"));
+
+tplDaySelect.addEventListener("change", () => {
+  const i = Number(tplDaySelect.value || "0");
+  renderBuilderDay(i);
+});
+
+tplDayTitle.addEventListener("input", () => {
+  const i = Number(tplDaySelect.value || "0");
+  builder.days[i].title = tplDayTitle.value;
+});
+
+tplAddLine.addEventListener("click", () => {
+  const i = Number(tplDaySelect.value || "0");
+  builder.days[i].lines.push("");
+  renderBuilderDay(i);
+});
+
+tplDayClear.addEventListener("click", () => {
+  const i = Number(tplDaySelect.value || "0");
+  builder.days[i] = { title:"", lines:[""] };
+  renderBuilderDay(i);
+});
+
+tplSave.addEventListener("click", () => {
+  const name = (tplName.value || "").trim();
+  if (!name) { alert("Please name your template."); return; }
+  const nameUpper = name.toUpperCase();
+
+  let raw = "";
+  if (builder.mode === "paste"){
+    raw = (tplRaw.value || "").trim();
+    if (!raw) { alert("Please paste your template text."); return; }
+  } else {
+    raw = builderToRaw(nameUpper);
+  }
+
+  const normalized = raw.replace(/\r/g, "\n").replace(/\u2028|\u2029|\u0085/g, "\n");
+  if (!/D[1-7]\s*[–-]/i.test(normalized)) {
+    alert("Template must include day headers like: D1 – BENCH");
+    return;
+  }
+
+  const custom = loadCustomTemplates();
+  const id = uid();
+  custom.push({ id, name: nameUpper, raw });
+  saveCustomTemplates(custom);
+
+  closeTplModal();
+  refreshTemplateSelect(id);
+  templateSelect.value = id;
+  updateDeleteVisibility();
+  alert("Template saved.");
+});
+
+deleteTemplateBtn.addEventListener("click", () => {
+  const id = templateSelect.value;
+  if (!id || !isCustomTemplateId(id)) return;
+  if (!confirm("Delete this custom template?")) return;
+
+  const custom = loadCustomTemplates().filter(t => t.id !== id);
+  saveCustomTemplates(custom);
+  refreshTemplateSelect("");
+});
+
+// Close modal on backdrop click
+tplModal.addEventListener("click", (e) => {
+  if (e.target === tplModal) closeTplModal();
+});
+
+
+exportTemplatesBtn.addEventListener("click", () => {
+  const custom = loadCustomTemplates();
+  const payload = { version: 1, exportedAt: new Date().toISOString(), templates: custom };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "macro-matrix-workout-templates.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+importTemplatesInput.addEventListener("change", async () => {
+  const file = importTemplatesInput.files && importTemplatesInput.files[0];
+  if (!file) return;
+
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const arr = Array.isArray(data) ? data : (data && Array.isArray(data.templates) ? data.templates : null);
+    if (!arr) throw new Error("Invalid file");
+
+    const existing = loadCustomTemplates();
+    const byName = new Map(existing.map(t => [t.name, t]));
+    arr.forEach(t => {
+      if (!t || !t.name || !t.raw) return;
+      const name = String(t.name).toUpperCase();
+      if (byName.has(name)) return;
+      existing.push({ id: uid(), name, raw: String(t.raw) });
+    });
+
+    saveCustomTemplates(existing);
+    refreshTemplateSelect("");
+    updateDeleteVisibility();
+    alert("Templates imported.");
+  }catch(e){
+    alert("Could not import templates.");
+  } finally {
+    importTemplatesInput.value = "";
+  }
+});
+
+// Init
+  refreshTemplateSelect("");
+  setWeek(new Date());
+})();
+</script>
+
+<script>
+  // PWA: register service worker (safe if sw.js exists)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    });
+  }
+</script>
+
+</body>
+</html>
