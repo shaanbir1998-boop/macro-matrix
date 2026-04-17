@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About - Macro Matrix</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      background: #000;
+      color: #E6E7E8;
+      font-family: monospace;
+    }
+    .mm-btn {
+      background: #F27D9B;
+      color: #E6E7E8;
+    }
+  </style>
+</head>
+
+<body class="p-4">
+
+  <div class="max-w-md mx-auto border border-white p-4 min-h-screen">
+
+    <!-- Title -->
+    <h1 class="text-xl tracking-widest mb-2">ABOUT</h1>
+    <p class="text-sm text-gray-400 mb-6">
+      What this app does + how calculations work
+    </p>
+
+    <!-- App Description -->
+    <div class="mb-6">
+      <h2 class="text-sm tracking-widest mb-2">APP OVERVIEW</h2>
+      <p class="text-sm text-gray-300 leading-relaxed">
+        Macro Matrix is a nutrition calculator that lets you build meals like a matrix.
+        Each ingredient acts as a vector (protein, carbs, fat), and totals are summed
+        against your daily targets in real time.
+      </p>
+    </div>
+
+    <!-- BMR Formula -->
+    <div class="mb-6">
+      <h2 class="text-sm tracking-widest mb-2">BMR FORMULA</h2>
+      <p class="text-sm text-gray-300 leading-relaxed">
+        This app uses the <strong>Mifflin-St Jeor Equation</strong> to estimate your
+        Basal Metabolic Rate (BMR):
+      </p>
+
+      <div class="border border-white p-3 mt-3 text-sm">
+        Men: BMR = (10 × kg) + (6.25 × cm) − (5 × age) + 5<br><br>
+        Women: BMR = (10 × kg) + (6.25 × cm) − (5 × age) − 161
+      </div>
+
+      <p class="text-sm text-gray-300 mt-3">
+        Your Total Daily Energy Expenditure (TDEE) is calculated by multiplying BMR
+        by your activity level.
+      </p>
+    </div>
+
+    <!-- Macro Logic -->
+    <div class="mb-6">
+      <h2 class="text-sm tracking-widest mb-2">MACRO LOGIC</h2>
+      <p class="text-sm text-gray-300 leading-relaxed">
+        Suggested macros are based on bodyweight:
+        <br><br>
+        • Protein ≈ 0.9g per lb<br>
+        • Fat ≈ 0.35g per lb<br>
+        • Carbs fill remaining calories
+      </p>
+    </div>
+
+    <!-- Back Button -->
+    <a href="/" class="block w-full text-center border border-white py-2 mt-6 mm-btn rounded-lg">
+      ← BACK
+    </a>
+
+  </div>
+
+</body>
+</html>
